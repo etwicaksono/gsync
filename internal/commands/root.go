@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transaction_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
 	"github.com/etwicaksono/data-transaksi-service/internal/ports/app"
 	"github.com/spf13/cobra"
@@ -23,6 +24,7 @@ var rootCmd = &cobra.Command{
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		// Load config into the cfg struct for all subcommands
 		cfg = config.LoadConfig()
+		transactionApp = transaction_app.NewTransactionApp(cfg)
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
