@@ -5,12 +5,14 @@ import (
 	"os"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
+	"github.com/etwicaksono/data-transaksi-service/internal/ports/app"
 	"github.com/spf13/cobra"
 )
 
 var (
-	version = "dev"
-	cfg     config.Config
+	version        = "dev"
+	cfg            config.Config
+	transactionApp app.TransactionAppInterface
 )
 
 var rootCmd = &cobra.Command{
