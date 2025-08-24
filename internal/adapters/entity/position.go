@@ -1,4 +1,4 @@
-package transaction_app
+package entity
 
 type Cell struct {
 	Row int    `json:"row"`

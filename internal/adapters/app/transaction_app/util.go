@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
@@ -51,7 +52,7 @@ func MustSheetsService(ctx context.Context, credsPath string) *sheets.Service {
 // ReadSheetWithPos reads a range and returns [][]ReadData with absolute positions.
 // It correctly handles ranges like "My Sheet!Y5:AL20" by using the upper-left cell (Y5)
 // and quotes the sheet name when building A1 addresses.
-func ReadSheetWithPos(ctx context.Context, srv *sheets.Service, spreadsheetID, a1Range string) ([][]ReadData, error) {
+func ReadSheetWithPos(ctx context.Context, srv *sheets.Service, spreadsheetID, a1Range string) ([][]entity.ReadData, error) {
 	resp, err := srv.Spreadsheets.Values.Get(spreadsheetID, a1Range).ValueRenderOption("UNFORMATTED_VALUE").Context(ctx).Do()
 	if err != nil {
 		return nil, err
@@ -59,17 +60,17 @@ func ReadSheetWithPos(ctx context.Context, srv *sheets.Service, spreadsheetID, a
 
 	sheetTitle, startCol, startRow := ParseA1RangeStart(a1Range) // robust start-cell extraction
 
-	out := make([][]ReadData, len(resp.Values))
+	out := make([][]entity.ReadData, len(resp.Values))
 	for i, r := range resp.Values {
-		row := make([]ReadData, len(r))
+		row := make([]entity.ReadData, len(r))
 		for j, v := range r {
 			val := fmt.Sprint(v)
 			absRow := startRow + i
 			absCol := startCol + j
 			a1 := fmt.Sprintf("%s!%s%d", QuoteSheet(sheetTitle), ColToLetter(absCol), absRow)
-			row[j] = ReadData{
+			row[j] = entity.ReadData{
 				Val: val,
-				Cell: Cell{
+				Cell: entity.Cell{
 					Row: absRow,
 					Col: absCol,
 					A1:  a1,
