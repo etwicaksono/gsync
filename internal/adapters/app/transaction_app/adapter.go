@@ -1,14 +1,17 @@
 package transaction_app
 
 import (
+	"github.com/etwicaksono/data-transaksi-service/internal/config"
 	port "github.com/etwicaksono/data-transaksi-service/internal/ports/app"
 )
 
 // adapter is a concrete implementation of port.TransactionAppInterface.
 type adapter struct {
-	// TODO: deps (mongo/sql/etc)
+	cfg config.Config
 }
 
-func NewTransactionApp( /* deps */ ) port.TransactionAppInterface {
-	return &adapter{} // TODO: implement me
+func NewTransactionApp(cfg config.Config) port.TransactionAppInterface {
+	return &adapter{
+		cfg: cfg,
+	}
 }

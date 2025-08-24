@@ -8,9 +8,9 @@ import (
 )
 
 var transactionCmd = &cobra.Command{
-	Use:   "app",
-	Short: "Generate boilerplate app",
-	Long:  `Generate boilerplate app for Hexagonal Architecture`,
+	Use:   "transaction",
+	Short: "Sync Transaction sheet to db",
+	Long:  `Sync Transaction sheet to db`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		err = transactionApp.Sync(cmd.Context())
 		if err != nil {
