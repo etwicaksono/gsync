@@ -8,5 +8,5 @@ import (
 )
 
 type TransactionDbInterface interface {
-	BulkInsert(ctx context.Context, tx *gorm.DB, request []entity.Transaction) (code int, err error)
+	BulkUpsert(ctx context.Context, tx *gorm.DB, request []entity.Transaction) (code int, err error)
 }

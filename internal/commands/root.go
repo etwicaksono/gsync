@@ -24,7 +24,7 @@ var rootCmd = &cobra.Command{
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		// Load config into the cfg struct for all subcommands
 		cfg = config.LoadConfig()
-		transactionApp = transaction_app.NewTransactionApp(cfg)
+		transactionApp = transaction_app.NewTransactionApp(cfg, nil, nil)
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {

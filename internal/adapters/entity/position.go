@@ -1,12 +1,12 @@
 package entity
 
 type Cell struct {
-	Row int    `json:"row"`
-	Col int    `json:"col"`
-	A1  string `json:"a1"`
+	Row int
+	Col int
+	A1  string
 }
 
 type ReadData struct {
-	Val  string `json:"val"`
-	Cell Cell   `json:"cell"`
+	Val  string
+	Cell Cell
 }

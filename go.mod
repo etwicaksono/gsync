@@ -3,6 +3,7 @@ module github.com/etwicaksono/data-transaksi-service
 go 1.23.8
 
 require (
+	github.com/guregu/null v4.0.0+incompatible
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	google.golang.org/api v0.215.0
