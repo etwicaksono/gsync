@@ -35,6 +35,16 @@ var pullCmd = &cobra.Command{
 				err = transferApp.PullTransfer(ctx, forcePull)
 				funcCall = "transferApp.PullTransfer"
 			}
+		case "credit":
+			{
+				err = creditApp.PullCredit(ctx, forcePull)
+				funcCall = "creditApp.PullCredit"
+			}
+		case "debt":
+			{
+				err = debtApp.PullDebt(ctx, forcePull)
+				funcCall = "debtApp.PullDebt"
+			}
 		default:
 			{
 				_, _ = fmt.Fprintln(os.Stderr, "invalid argument, available are: 'transaction', 'credit', 'debt', 'transfer', and 'all'")

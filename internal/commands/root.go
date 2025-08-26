@@ -6,8 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/credit_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/debt_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transaction_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transfer_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/credit_db"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/debt_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transaction_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transfer_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
@@ -24,8 +28,12 @@ var (
 	cfg            config.Config
 	transactionApp app.TransactionAppInterface
 	transferApp    app.TransferAppInterface
+	debtApp        app.DebtAppInterface
+	creditApp      app.CreditAppInterface
 	transactionDb  db.TransactionDbInterface
 	transferDb     db.TransferDbInterface
+	creditDb       db.CreditDbInterface
+	debtDb         db.DebtDbInterface
 	dbClient       *gorm.DB
 )
 
@@ -70,8 +78,12 @@ func Execute() {
 
 	transactionDb = transaction_db.NewTransactionDb(cfg)
 	transferDb = transfer_db.NewTransferDb(cfg)
+	debtDb = debt_db.NewDebtDb(cfg)
+	creditDb = credit_db.NewCreditDb(cfg)
 	transactionApp = transaction_app.NewTransactionApp(cfg, transactionDb, dbClient)
 	transferApp = transfer_app.NewTransferApp(cfg, transferDb, dbClient)
+	debtApp = debt_app.NewDebtApp(cfg, dbClient, debtDb)
+	creditApp = credit_app.NewCreditApp(cfg, dbClient, creditDb)
 
 	if err = rootCmd.Execute(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
