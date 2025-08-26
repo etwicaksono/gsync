@@ -27,13 +27,13 @@ var pullCmd = &cobra.Command{
 		switch args[0] {
 		case "transaction":
 			{
-				err = transactionApp.SyncTransaction(ctx, forcePull)
-				funcCall = "transactionApp.SyncTransaction"
+				err = transactionApp.PullTransaction(ctx, forcePull)
+				funcCall = "transactionApp.PullTransaction"
 			}
 		case "transfer":
 			{
-				err = transferApp.SyncTransfer(ctx, forcePull)
-				funcCall = "transferApp.SyncTransfer"
+				err = transferApp.PullTransfer(ctx, forcePull)
+				funcCall = "transferApp.PullTransfer"
 			}
 		default:
 			{
