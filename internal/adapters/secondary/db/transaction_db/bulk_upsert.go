@@ -2,6 +2,7 @@ package transaction_db
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -12,10 +13,18 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (a adapter) BulkUpsert(ctx context.Context, tx *gorm.DB, request []entity.Transaction) (code int, err error) {
+func (a adapter) BulkUpsert(ctx context.Context, tx *gorm.DB, request []entity.Transaction, truncateFirst bool) (code int, err error) {
 	upsertDataModels := make([]model.Transaction, len(request))
 	for i, item := range request {
 		upsertDataModels[i] = model.Transaction{}.FromEntity(item)
+	}
+
+	if truncateFirst {
+		err = tx.Exec(fmt.Sprintf("TRUNCATE TABLE %s", model.Transaction{}.TableName())).Error
+		if err != nil {
+			slog.ErrorContext(ctx, fmt.Sprintf("error on truncate %s", model.Transaction{}.TableName()), slog.String(constants.Error, err.Error()))
+			return
+		}
 	}
 
 	err = tx.Clauses(clause.OnConflict{

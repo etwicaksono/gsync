@@ -14,7 +14,7 @@ import (
 	"github.com/guregu/null"
 )
 
-func (a adapter) SyncTransaction(ctx context.Context) (err error) {
+func (a adapter) SyncTransaction(ctx context.Context, truncateFirst bool) (err error) {
 	// Context with timeout
 	ctx, cancel := context.WithTimeout(ctx, a.cfg.CliApp.CliTimeout)
 	defer cancel()
@@ -88,7 +88,7 @@ func (a adapter) SyncTransaction(ctx context.Context) (err error) {
 
 	tx := a.dbClient.WithContext(ctx).Begin()
 	defer tx.Rollback()
-	_, err = a.transactionDb.BulkUpsert(ctx, tx, upsertData)
+	_, err = a.transactionDb.BulkUpsert(ctx, tx, upsertData, truncateFirst)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to bulk upsert transactions: %v", err)
 		return err
