@@ -9,6 +9,7 @@ import (
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transaction_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transfer_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transaction_db"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transfer_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
 	"github.com/etwicaksono/data-transaksi-service/internal/infrastructure"
 	"github.com/etwicaksono/data-transaksi-service/internal/injector"
@@ -24,6 +25,7 @@ var (
 	transactionApp app.TransactionAppInterface
 	transferApp    app.TransferAppInterface
 	transactionDb  db.TransactionDbInterface
+	transferDb     db.TransferDbInterface
 	dbClient       *gorm.DB
 )
 
@@ -67,8 +69,9 @@ func Execute() {
 	dbClient = gormAdapter.GetClient()
 
 	transactionDb = transaction_db.NewTransactionDb(cfg)
+	transferDb = transfer_db.NewTransferDb(cfg)
 	transactionApp = transaction_app.NewTransactionApp(cfg, transactionDb, dbClient)
-	transferApp = transfer_app.NewTransferApp(cfg, transactionDb, dbClient)
+	transferApp = transfer_app.NewTransferApp(cfg, transferDb, dbClient)
 
 	if err = rootCmd.Execute(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)

@@ -90,12 +90,12 @@ func (a adapter) SyncTransaction(ctx context.Context, truncateFirst bool) (err e
 	defer tx.Rollback()
 	_, err = a.transactionDb.BulkUpsert(ctx, tx, upsertData, truncateFirst)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to bulk upsert transactions: %v", err)
+		slog.ErrorContext(ctx, "failed to bulk upsert transactions", slog.String(constants.Error, err.Error()))
 		return err
 	}
 
 	if err = tx.Commit().Error; err != nil {
-		slog.ErrorContext(ctx, "failed to commit transactions: %v", err)
+		slog.ErrorContext(ctx, "failed to commit transactions", slog.String(constants.Error, err.Error()))
 		return err
 	}
 

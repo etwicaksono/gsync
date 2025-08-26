@@ -9,19 +9,19 @@ import (
 
 // adapter is a concrete implementation of port.TransferAppInterface.
 type adapter struct {
-	cfg           config.Config
-	dbClient      *gorm.DB
-	transactionDb db.TransactionDbInterface
+	cfg        config.Config
+	dbClient   *gorm.DB
+	transferDb db.TransferDbInterface
 }
 
 func NewTransferApp(
 	cfg config.Config,
-	db db.TransactionDbInterface,
+	db db.TransferDbInterface,
 	dbClient *gorm.DB,
 ) port.TransferAppInterface {
 	return &adapter{
-		cfg:           cfg,
-		dbClient:      dbClient,
-		transactionDb: db,
+		cfg:        cfg,
+		dbClient:   dbClient,
+		transferDb: db,
 	}
 }

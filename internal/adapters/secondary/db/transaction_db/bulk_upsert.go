@@ -32,7 +32,7 @@ func (a adapter) BulkUpsert(ctx context.Context, tx *gorm.DB, request []entity.T
 		DoUpdates: clause.AssignmentColumns([]string{"date", "account", "category", "amount", "note", "type", "position", "updated_at", "updated_by"}),
 	}).CreateInBatches(upsertDataModels, 1000).Error
 	if err != nil {
-		slog.ErrorContext(ctx, "error in BulkUpsert", slog.String(constants.Error, err.Error()))
+		slog.ErrorContext(ctx, fmt.Sprintf("error in BulkUpsert %s", model.Transaction{}.TableName()), slog.String(constants.Error, err.Error()))
 		code = http.StatusInternalServerError
 		return
 	}
