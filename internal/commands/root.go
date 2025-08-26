@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transaction_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transaction_db"
@@ -25,7 +26,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "gsync",
+	Use:   filepath.Base(os.Args[0]),
 	Short: "CLI that syncs google sheets and database",
 	Long:  `CLI that syncs google sheets and database`,
 	// Run omitted so help is shown if no subcommand is provided
