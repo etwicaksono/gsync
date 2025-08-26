@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
 	"google.golang.org/api/option"
@@ -161,4 +162,20 @@ func QuoteSheet(title string) string {
 		return "'" + strings.ReplaceAll(title, "'", "''") + "'"
 	}
 	return title
+}
+
+func FromSheetSerialDate(n float64) time.Time {
+	// Excel/Sheets epoch starts at 1899-12-30
+	base := time.Date(1899, 12, 30, 0, 0, 0, 0, time.UTC)
+	return base.Add(time.Duration(n*24) * time.Hour)
+}
+
+// helper: ensure required cells are non-empty
+func NonEmpty(row []entity.ReadData, idx ...int) bool {
+	for _, i := range idx {
+		if i >= len(row) || strings.TrimSpace(row[i].Val) == "" {
+			return false
+		}
+	}
+	return true
 }

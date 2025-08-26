@@ -23,10 +23,17 @@ var pullCmd = &cobra.Command{
 		authData := entity.AuthData{Name: "cli"}
 		ctx := util.SetAuthData(cmd.Context(), authData)
 
+		var funcCall string
 		switch args[0] {
 		case "transaction":
 			{
 				err = transactionApp.SyncTransaction(ctx, forcePull)
+				funcCall = "transactionApp.SyncTransaction"
+			}
+		case "transfer":
+			{
+				err = transferApp.SyncTransfer(ctx, forcePull)
+				funcCall = "transferApp.SyncTransfer"
 			}
 		default:
 			{
@@ -35,7 +42,7 @@ var pullCmd = &cobra.Command{
 			}
 		}
 		if err != nil {
-			_, _ = fmt.Fprintln(os.Stderr, "error on transactionApp.SyncTransaction:", err)
+			_, _ = fmt.Fprintln(os.Stderr, fmt.Sprintf("error on %s:", funcCall), err)
 			os.Exit(2)
 		}
 		return

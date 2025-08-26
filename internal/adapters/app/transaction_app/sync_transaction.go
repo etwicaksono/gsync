@@ -46,7 +46,7 @@ func (a adapter) SyncTransaction(ctx context.Context, truncateFirst bool) (err e
 			continue
 		}
 
-		if nonEmpty(row, 0, 1, 2, 3, 4, 6) {
+		if util.NonEmpty(row, 0, 1, 2, 3, 4, 6) {
 			idParsed := row[0]
 			dateParsed := row[1]
 			accountParsed := row[2]
@@ -61,7 +61,7 @@ func (a adapter) SyncTransaction(ctx context.Context, truncateFirst bool) (err e
 
 			upsertData = append(upsertData, entity.Transaction{
 				ID:       id,
-				Date:     fromSheetSerialDate(dateFloat),
+				Date:     util.FromSheetSerialDate(dateFloat),
 				Account:  strings.TrimSpace(accountParsed.Val),
 				Category: strings.TrimSpace(categoryParsed.Val),
 				Amount:   amountFloat,
@@ -100,20 +100,4 @@ func (a adapter) SyncTransaction(ctx context.Context, truncateFirst bool) (err e
 	}
 
 	return
-}
-
-func fromSheetSerialDate(n float64) time.Time {
-	// Excel/Sheets epoch starts at 1899-12-30
-	base := time.Date(1899, 12, 30, 0, 0, 0, 0, time.UTC)
-	return base.Add(time.Duration(n*24) * time.Hour)
-}
-
-// helper: ensure required cells are non-empty
-func nonEmpty(row []entity.ReadData, idx ...int) bool {
-	for _, i := range idx {
-		if i >= len(row) || strings.TrimSpace(row[i].Val) == "" {
-			return false
-		}
-	}
-	return true
 }
