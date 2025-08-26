@@ -10,6 +10,7 @@ import (
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
 	"github.com/etwicaksono/data-transaksi-service/internal/constants"
+	"github.com/guregu/null"
 )
 
 func (a adapter) Sync(ctx context.Context) (err error) {
@@ -68,6 +69,12 @@ func (a adapter) Sync(ctx context.Context) (err error) {
 					Amount:   amountParsed.Cell,
 					Note:     noteParsed.Cell,
 					Type:     typeParsed.Cell,
+				},
+				TimeStamps: entity.TimeStamps{
+					CreatedAt: time.Now(),
+					CreatedBy: null.StringFrom("cli"), // TODO: retrieve from context
+					UpdatedAt: null.TimeFrom(time.Now()),
+					UpdatedBy: null.StringFrom("cli"), // TODO: retrieve from context
 				},
 			})
 		}

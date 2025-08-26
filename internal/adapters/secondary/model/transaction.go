@@ -14,7 +14,7 @@ type Transaction struct {
 	Amount   float64              `gorm:"column:amount;float(64);not null"`
 	Note     string               `gorm:"column:note;type:text;not null"`
 	Type     string               `gorm:"column:type;type:varchar(16);not null"`
-	Position *TransactionPosition `gorm:"column:position;type:json;default:null"`
+	Position *TransactionPosition `gorm:"column:position;type:json;serializer:json;default:null"`
 	TimeStamps
 }
 
