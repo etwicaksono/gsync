@@ -46,7 +46,7 @@ func (a adapter) PullTransfer(ctx context.Context, truncateFirst bool) (err erro
 			continue
 		}
 
-		if util.NonEmpty(row, 0, 1, 2, 3, 4) {
+		if util.NonEmpty(row, 0, 2, 3, 4) {
 			idParsed := row[0]
 			dateParsed := row[1]
 			fromAccountParsed := row[2]
