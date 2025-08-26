@@ -2,12 +2,14 @@ package transaction_app
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
+	"github.com/etwicaksono/data-transaksi-service/internal/constants"
 )
 
 func (a adapter) Sync(ctx context.Context) (err error) {
@@ -21,13 +23,14 @@ func (a adapter) Sync(ctx context.Context) (err error) {
 	// Read with positions (FIXED for ranges like Y5:AL20 and quoted sheet names)
 	srcGrid, err := ReadSheetWithPos(ctx, srv, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange)
 	if err != nil {
-		log.Fatalf("failed to read source sheet: %v", err)
+		slog.ErrorContext(ctx, "failed to read sheet", slog.String(constants.Error, err.Error()))
+		return err
 	}
 	totalCells := 0
 	for _, row := range srcGrid {
 		totalCells += len(row)
 	}
-	log.Printf("Read %d row(s), %d cell(s) from %s %q", len(srcGrid), totalCells, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange)
+	slog.InfoContext(ctx, fmt.Sprintf("Read %d row(s), %d cell(s) from %s %q", len(srcGrid), totalCells, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange))
 
 	// save data to db
 	var upsertData = make([]entity.Transaction, 0)
@@ -36,7 +39,7 @@ func (a adapter) Sync(ctx context.Context) (err error) {
 			continue
 		}
 
-		if nonEmpty(row, 0, 1, 2, 3, 4, 5, 6) {
+		if nonEmpty(row, 0, 1, 2, 3, 4, 6) {
 			idParsed := row[0]
 			dateParsed := row[1]
 			accountParsed := row[2]
@@ -74,10 +77,12 @@ func (a adapter) Sync(ctx context.Context) (err error) {
 	defer tx.Rollback()
 	_, err = a.transactionDb.BulkUpsert(ctx, tx, upsertData)
 	if err != nil {
+		slog.ErrorContext(ctx, "failed to bulk upsert transactions: %v", err)
 		return err
 	}
 
 	if err = tx.Commit().Error; err != nil {
+		slog.ErrorContext(ctx, "failed to commit transactions: %v", err)
 		return err
 	}
 
