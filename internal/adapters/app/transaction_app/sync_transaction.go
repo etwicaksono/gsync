@@ -23,7 +23,7 @@ func (a adapter) SyncTransaction(ctx context.Context, truncateFirst bool) (err e
 	srv := util.MustSheetsService(ctx, a.cfg.Gsheet.CredentialPath)
 
 	// Read with positions (FIXED for ranges like Y5:AL20 and quoted sheet names)
-	srcGrid, err := util.ReadSheetWithPos(ctx, srv, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange)
+	srcGrid, err := util.ReadSheetWithPos(ctx, srv, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange, 7)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to read sheet", slog.String(constants.Error, err.Error()))
 		return err
