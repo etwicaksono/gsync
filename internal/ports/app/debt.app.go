@@ -1,5 +1,7 @@
 package app
 
+import "context"
+
 type DebtAppInterface interface {
-	// TODO: implement me
+	PullDebt(ctx context.Context, truncateFirst bool) (err error)
 }
