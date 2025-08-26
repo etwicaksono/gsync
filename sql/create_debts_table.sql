@@ -1,0 +1,11 @@
+CREATE TABLE `debts` (
+    `id` BIGINT PRIMARY KEY,
+    `account` VARCHAR(64) NOT NULL,
+    `name` VARCHAR(64) NOT NULL,
+    `amount` DOUBLE NOT NULL,
+    `position` JSON DEFAULT NULL,
+    `created_at` DATETIME NOT NULL,
+    `created_by` VARCHAR(64) DEFAULT NULL,
+    `updated_at` DATETIME DEFAULT NULL,
+    `updated_by` VARCHAR(64) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
