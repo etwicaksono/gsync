@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/util"
 	"github.com/etwicaksono/data-transaksi-service/internal/constants"
 	"github.com/guregu/null"
 )
@@ -19,10 +20,10 @@ func (a adapter) Sync(ctx context.Context) (err error) {
 	defer cancel()
 
 	// Sheets service
-	srv := MustSheetsService(ctx, a.cfg.Gsheet.CredentialPath)
+	srv := util.MustSheetsService(ctx, a.cfg.Gsheet.CredentialPath)
 
 	// Read with positions (FIXED for ranges like Y5:AL20 and quoted sheet names)
-	srcGrid, err := ReadSheetWithPos(ctx, srv, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange)
+	srcGrid, err := util.ReadSheetWithPos(ctx, srv, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to read sheet", slog.String(constants.Error, err.Error()))
 		return err
