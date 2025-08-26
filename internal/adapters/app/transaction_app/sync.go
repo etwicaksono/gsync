@@ -34,6 +34,11 @@ func (a adapter) Sync(ctx context.Context) (err error) {
 	}
 	slog.InfoContext(ctx, fmt.Sprintf("Read %d row(s), %d cell(s) from %s %q", len(srcGrid), totalCells, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange))
 
+	authData, err := util.GetAuthData(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to get auth data", slog.String(constants.Error, err.Error()))
+		return
+	}
 	// save data to db
 	var upsertData = make([]entity.Transaction, 0)
 	for _, row := range srcGrid {
@@ -73,9 +78,9 @@ func (a adapter) Sync(ctx context.Context) (err error) {
 				},
 				TimeStamps: entity.TimeStamps{
 					CreatedAt: time.Now(),
-					CreatedBy: null.StringFrom("cli"), // TODO: retrieve from context
+					CreatedBy: null.StringFrom(authData.Name),
 					UpdatedAt: null.TimeFrom(time.Now()),
-					UpdatedBy: null.StringFrom("cli"), // TODO: retrieve from context
+					UpdatedBy: null.StringFrom(authData.Name),
 				},
 			})
 		}

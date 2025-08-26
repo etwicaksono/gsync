@@ -3,5 +3,6 @@ package errors
 import "errors"
 
 var (
-	ErrLogLevelInvalid = errors.New(`invalid log level`)
+	ErrFailedParseAuthData = errors.New(`failed to parse auth data`)
+	ErrLogLevelInvalid     = errors.New(`invalid log level`)
 )
