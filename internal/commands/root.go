@@ -1,19 +1,27 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transaction_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transaction_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
+	"github.com/etwicaksono/data-transaksi-service/internal/infrastructure"
+	"github.com/etwicaksono/data-transaksi-service/internal/injector"
 	"github.com/etwicaksono/data-transaksi-service/internal/ports/app"
+	"github.com/etwicaksono/data-transaksi-service/internal/ports/secondary/db"
 	"github.com/spf13/cobra"
+	"gorm.io/gorm"
 )
 
 var (
 	version        = "dev"
 	cfg            config.Config
 	transactionApp app.TransactionAppInterface
+	transactionDb  db.TransactionDbInterface
+	dbClient       *gorm.DB
 )
 
 var rootCmd = &cobra.Command{
@@ -21,12 +29,6 @@ var rootCmd = &cobra.Command{
 	Short: "CLI that syncs google sheets and database",
 	Long:  `CLI that syncs google sheets and database`,
 	// Run omitted so help is shown if no subcommand is provided
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		// Load config into the cfg struct for all subcommands
-		cfg = config.LoadConfig()
-		transactionApp = transaction_app.NewTransactionApp(cfg, nil, nil)
-		return nil
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flags().NFlag() == 0 {
 			_ = cmd.Help()
@@ -42,7 +44,29 @@ var rootCmd = &cobra.Command{
 
 // Execute runs the root command
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	var err error
+	ctx := context.Background()
+	cfg = config.LoadConfig()
+
+	logger, err := injector.LoggerInit(cfg.CliApp.App)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	gormAdapter := infrastructure.NewGormDb(ctx, cfg, logger)
+	err = gormAdapter.Connect()
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	defer gormAdapter.Disconnect()
+	dbClient = gormAdapter.GetClient()
+
+	transactionDb = transaction_db.NewTransactionDb(cfg)
+	transactionApp = transaction_app.NewTransactionApp(cfg, transactionDb, dbClient)
+
+	if err = rootCmd.Execute(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

@@ -21,6 +21,7 @@ func NewTransactionApp(
 ) port.TransactionAppInterface {
 	return &adapter{
 		cfg:           cfg,
+		dbClient:      dbClient,
 		transactionDb: db,
 	}
 }

@@ -10,8 +10,6 @@ import (
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
 )
 
-/* ===== Types ===== */
-
 func (a adapter) Sync(ctx context.Context) (err error) {
 	// Context with timeout
 	ctx, cancel := context.WithTimeout(ctx, a.cfg.CliApp.CliTimeout)

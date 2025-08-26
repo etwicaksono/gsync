@@ -19,7 +19,7 @@ type Transaction struct {
 }
 
 func (Transaction) TableName() string {
-	return "transaction"
+	return "transactions"
 }
 
 func (Transaction) FromEntity(e entity.Transaction) Transaction {

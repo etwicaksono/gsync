@@ -37,7 +37,23 @@ func LoadConfig() Config {
 
 	configInstance = &Config{
 		CliApp: CliApp{
+			App: App{
+				Name:     coalesce(vpr.GetString("APP_CLI_NAME"), "gsync"),
+				Version:  coalesce(vpr.GetString("APP_CLI_VERSION"), "dev"),
+				LogLevel: coalesce(vpr.GetString("APP_CLI_LOG_LEVEL"), "info"),
+			},
 			CliTimeout: coalesce(vpr.GetDuration("APP_CLI_TIMEOUT"), 1*time.Minute),
+		},
+		Db: DbConfig{
+			Address:               coalesce(vpr.GetString("DB_ADDRESS"), "localhost:27017"),
+			Name:                  coalesce(vpr.GetString("DB_NAME"), "example"),
+			Username:              coalesce(vpr.GetString("DB_USERNAME"), "admin"),
+			Password:              coalesce(vpr.GetString("DB_PASSWORD"), "admin_password"),
+			Option:                coalesce(vpr.GetString("DB_OPTION"), "?authSource=admin&readPreference=secondaryPreferred"),
+			MaxOpenConnections:    coalesce(vpr.GetInt("DB_MAX_OPEN_CONNECTIONS"), 10),
+			MaxIdleConnections:    coalesce(vpr.GetInt("DB_MAX_IDLE_CONNECTIONS"), 2),
+			MaxConnectionLifetime: coalesce(vpr.GetDuration("DB_MAX_CONNECTION_LIFETIME"), 60*time.Second),
+			MaxConnectionIdletime: coalesce(vpr.GetDuration("DB_MAX_CONNECTION_IDLE_TIME"), 20*time.Second),
 		},
 		Gsheet: GsheetConfig{
 			Id:               vpr.GetString("GSHEET_ID"),
