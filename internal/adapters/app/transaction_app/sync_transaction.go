@@ -14,7 +14,7 @@ import (
 	"github.com/guregu/null"
 )
 
-func (a adapter) Sync(ctx context.Context) (err error) {
+func (a adapter) SyncTransaction(ctx context.Context) (err error) {
 	// Context with timeout
 	ctx, cancel := context.WithTimeout(ctx, a.cfg.CliApp.CliTimeout)
 	defer cancel()

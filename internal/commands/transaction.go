@@ -16,9 +16,9 @@ var transactionCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		authData := entity.AuthData{Name: "cli"}
 		ctx := util.SetAuthData(cmd.Context(), authData)
-		err = transactionApp.Sync(ctx)
+		err = transactionApp.SyncTransaction(ctx)
 		if err != nil {
-			_, _ = fmt.Fprintln(os.Stderr, "error on transactionApp.Sync:", err)
+			_, _ = fmt.Fprintln(os.Stderr, "error on transactionApp.SyncTransaction:", err)
 			os.Exit(2)
 		}
 		return
