@@ -12,7 +12,7 @@ import (
 
 var forcePull bool
 var pullCmd = &cobra.Command{
-	Use:   "pull {transaction|credit|debt|transfer|account|all}",
+	Use:   "pull {transaction|credit|debt|transfer|account|category|all}",
 	Short: "Pull data from sheet to db",
 	Long:  `Pull data from sheet to db`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -34,13 +34,14 @@ var pullCmd = &cobra.Command{
 			"credit":      func(ctx context.Context, force bool) error { return creditApp.PullCredit(ctx, force) },
 			"debt":        func(ctx context.Context, force bool) error { return debtApp.PullDebt(ctx, force) },
 			"account":     func(ctx context.Context, force bool) error { return accountApp.PullAccount(ctx, force) },
+			"category":    func(ctx context.Context, force bool) error { return categoryApp.PullCategory(ctx, force) },
 		}
 
 		// Helper to run one target with nice error context
 		runOne := func(name string) error {
 			fn, ok := registry[name]
 			if !ok {
-				return fmt.Errorf("invalid target %q; available: transaction, credit, debt, transfer, all", name)
+				return fmt.Errorf("invalid target %q; available: transaction, transfer, credit, debt, category, all", name)
 			}
 			if err := fn(ctx, forcePull); err != nil {
 				return fmt.Errorf("error in %s: %w", name, err)
@@ -50,7 +51,7 @@ var pullCmd = &cobra.Command{
 
 		// Handle "all" or a single target
 		if target == "all" {
-			order := []string{"transaction", "transfer", "credit", "debt", "account"}
+			order := []string{"transaction", "transfer", "credit", "debt", "account", "category"}
 			for _, name := range order {
 				if err := runOne(name); err != nil {
 					return err
@@ -65,6 +66,6 @@ var pullCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(pullCmd)
-	pullCmd.ValidArgs = []string{"transaction", "credit", "debt", "transfer", "all"}
+	pullCmd.ValidArgs = []string{"transaction", "transfer", "credit", "debt", "category", "all"}
 	pullCmd.Flags().BoolVarP(&forcePull, "force", "f", false, "truncate data first")
 }

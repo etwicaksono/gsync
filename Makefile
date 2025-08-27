@@ -9,3 +9,6 @@ run-pull-h:
 
 run-pull-account:
 	go run ./cmd/cli/main.go pull account
+
+run-pull-category:
+	go run ./cmd/cli/main.go pull category

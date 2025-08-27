@@ -7,11 +7,13 @@ import (
 	"path/filepath"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/account_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/category_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/credit_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/debt_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transaction_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transfer_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/account_db"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/category_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/credit_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/debt_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transaction_db"
@@ -33,11 +35,13 @@ var (
 	debtApp        app.DebtAppInterface
 	creditApp      app.CreditAppInterface
 	accountApp     app.AccountAppInterface
+	categoryApp    app.CategoryAppInterface
 	transactionDb  db.TransactionDbInterface
 	transferDb     db.TransferDbInterface
 	creditDb       db.CreditDbInterface
 	debtDb         db.DebtDbInterface
 	accountDb      db.AccountDbInterface
+	categoryDb     db.CategoryDbInterface
 	dbClient       *gorm.DB
 )
 
@@ -85,11 +89,13 @@ func Execute() {
 	debtDb = debt_db.NewDebtDb(cfg)
 	creditDb = credit_db.NewCreditDb(cfg)
 	accountDb = account_db.NewAccountDb(cfg)
+	categoryDb = category_db.NewCategoryDb(cfg)
 	transactionApp = transaction_app.NewTransactionApp(cfg, transactionDb, dbClient)
 	transferApp = transfer_app.NewTransferApp(cfg, transferDb, dbClient)
 	debtApp = debt_app.NewDebtApp(cfg, dbClient, debtDb)
 	creditApp = credit_app.NewCreditApp(cfg, dbClient, creditDb)
 	accountApp = account_app.NewAccountApp(cfg, dbClient, accountDb)
+	categoryApp = category_app.NewCategoryApp(cfg, dbClient, categoryDb)
 
 	if err = rootCmd.Execute(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)

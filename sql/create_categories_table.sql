@@ -1,0 +1,13 @@
+CREATE TABLE `categories` (
+    `id` BIGINT PRIMARY KEY,
+    `parent` VARCHAR(64) NOT NULL,
+    `name` VARCHAR(64) NOT NULL,
+    `code` VARCHAR(64) NOT NULL,
+    `nature` VARCHAR(64) NOT NULL,
+    `visibility` VARCHAR(64) NOT NULL,
+    `position` JSON DEFAULT NULL,
+    `created_at` DATETIME NOT NULL,
+    `created_by` VARCHAR(64) DEFAULT NULL,
+    `updated_at` DATETIME DEFAULT NULL,
+    `updated_by` VARCHAR(64) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

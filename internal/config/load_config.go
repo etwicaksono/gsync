@@ -63,6 +63,7 @@ func LoadConfig() Config {
 			CreditRange:      coalesce(vpr.GetString("GSHEET_CREDIT_RANGE"), "Liquid Assets!O5:R27"),
 			DebtRange:        coalesce(vpr.GetString("GSHEET_DEBT_RANGE"), "Liquid Assets!U5:X27"),
 			AccountRange:     coalesce(vpr.GetString("GSHEET_ACCOUNT_RANGE"), "Liquid Assets!B5:M28"),
+			CategoryRange:    coalesce(vpr.GetString("GSHEET_CATEGORY_RANGE"), "Categories & Budget Mapping!B5:G98"),
 		},
 	}
 
