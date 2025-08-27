@@ -60,8 +60,8 @@ func LoadConfig() Config {
 			CredentialPath:   vpr.GetString("GSHEET_CREDENTIAL_PATH"),
 			TransactionRange: coalesce(vpr.GetString("GSHEET_TRANSACTION_RANGE"), "Transaction!B5:H"),
 			TransferRange:    coalesce(vpr.GetString("GSHEET_TRANSFER_RANGE"), "Transaction!B5:G"),
-			CreditRange:      coalesce(vpr.GetString("GSHEET_CREDIT_RANGE"), "Liquid Assets!N5:Q27"),
-			DebtRange:        coalesce(vpr.GetString("GSHEET_DEBT_RANGE"), "Liquid Assets!T5:W27"),
+			CreditRange:      coalesce(vpr.GetString("GSHEET_CREDIT_RANGE"), "Liquid Assets!O5:R27"),
+			DebtRange:        coalesce(vpr.GetString("GSHEET_DEBT_RANGE"), "Liquid Assets!U5:X27"),
 		},
 	}
 
