@@ -12,12 +12,12 @@ import (
 
 var forcePull bool
 var pullCmd = &cobra.Command{
-	Use:   "pull {transaction|credit|debt|transfer|all}",
+	Use:   "pull {transaction|credit|debt|transfer|account|all}",
 	Short: "Pull data from sheet to db",
 	Long:  `Pull data from sheet to db`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		if len(args) == 0 {
-			_, _ = fmt.Fprintln(os.Stderr, "target is required, available are: 'transaction', 'credit', 'debt', 'transfer', and 'all'")
+			_ = cmd.Help()
 			os.Exit(2)
 		}
 
@@ -33,6 +33,7 @@ var pullCmd = &cobra.Command{
 			"transfer":    func(ctx context.Context, force bool) error { return transferApp.PullTransfer(ctx, force) },
 			"credit":      func(ctx context.Context, force bool) error { return creditApp.PullCredit(ctx, force) },
 			"debt":        func(ctx context.Context, force bool) error { return debtApp.PullDebt(ctx, force) },
+			"account":     func(ctx context.Context, force bool) error { return accountApp.PullAccount(ctx, force) },
 		}
 
 		// Helper to run one target with nice error context
@@ -49,7 +50,7 @@ var pullCmd = &cobra.Command{
 
 		// Handle "all" or a single target
 		if target == "all" {
-			order := []string{"transaction", "transfer", "credit", "debt"}
+			order := []string{"transaction", "transfer", "credit", "debt", "account"}
 			for _, name := range order {
 				if err := runOne(name); err != nil {
 					return err

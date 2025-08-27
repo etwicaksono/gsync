@@ -3,3 +3,9 @@ run:
 
 run-pull:
 	go run ./cmd/cli/main.go pull
+
+run-pull-h:
+	go run ./cmd/cli/main.go pull -h
+
+run-pull-account:
+	go run ./cmd/cli/main.go pull account

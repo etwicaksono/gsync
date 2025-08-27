@@ -26,6 +26,7 @@ type GsheetConfig struct {
 	TransferRange    string
 	CreditRange      string
 	DebtRange        string
+	AccountRange     string
 }
 
 type DbConfig struct {
