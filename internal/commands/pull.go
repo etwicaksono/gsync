@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/util"
@@ -15,6 +16,11 @@ var pullCmd = &cobra.Command{
 	Short: "Pull data from sheet to db",
 	Long:  `Pull data from sheet to db`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if len(args) == 0 {
+			_, _ = fmt.Fprintln(os.Stderr, "target is required, available are: 'transaction', 'credit', 'debt', 'transfer', and 'all'")
+			os.Exit(2)
+		}
+
 		target := args[0]
 
 		authData := entity.AuthData{Name: "cli"}
