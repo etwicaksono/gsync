@@ -27,25 +27,48 @@ var pullCmd = &cobra.Command{
 		ctx := util.SetAuthData(cmd.Context(), authData)
 
 		// Define the callable signature and registry
-		type pullFn func(context.Context, bool) error
+		type pullFn struct {
+			fn     func(context.Context, bool) error
+			nameFn string
+		}
 		registry := map[string]pullFn{
-			"transaction": func(ctx context.Context, force bool) error { return transactionApp.PullTransaction(ctx, force) },
-			"transfer":    func(ctx context.Context, force bool) error { return transferApp.PullTransfer(ctx, force) },
-			"credit":      func(ctx context.Context, force bool) error { return creditApp.PullCredit(ctx, force) },
-			"debt":        func(ctx context.Context, force bool) error { return debtApp.PullDebt(ctx, force) },
-			"account":     func(ctx context.Context, force bool) error { return accountApp.PullAccount(ctx, force) },
-			"category":    func(ctx context.Context, force bool) error { return categoryApp.PullCategory(ctx, force) },
+			"transaction": {
+				fn:     func(ctx context.Context, force bool) error { return transactionApp.PullTransaction(ctx, force) },
+				nameFn: "transaction",
+			},
+			"transfer": {
+				fn:     func(ctx context.Context, force bool) error { return transferApp.PullTransfer(ctx, force) },
+				nameFn: "transfer",
+			},
+			"credit": {
+				fn:     func(ctx context.Context, force bool) error { return creditApp.PullCredit(ctx, force) },
+				nameFn: "credit",
+			},
+			"debt": {
+				fn:     func(ctx context.Context, force bool) error { return debtApp.PullDebt(ctx, force) },
+				nameFn: "debt",
+			},
+			"account": {
+				fn:     func(ctx context.Context, force bool) error { return accountApp.PullAccount(ctx, force) },
+				nameFn: "account",
+			},
+			"category": {
+				fn:     func(ctx context.Context, force bool) error { return categoryApp.PullCategory(ctx, force) },
+				nameFn: "category",
+			},
 		}
 
 		// Helper to run one target with nice error context
 		runOne := func(name string) error {
-			fn, ok := registry[name]
+			pullFn, ok := registry[name]
 			if !ok {
-				return fmt.Errorf("invalid target %q; available: transaction, transfer, credit, debt, category, all", name)
+				return fmt.Errorf("invalid target %q; available: transaction, transfer, credit, debt, account, category, all", name)
 			}
-			if err := fn(ctx, forcePull); err != nil {
+			fmt.Printf("Start pulling %s...\n", pullFn.nameFn)
+			if err := pullFn.fn(ctx, forcePull); err != nil {
 				return fmt.Errorf("error in %s: %w", name, err)
 			}
+			fmt.Printf("Success pulling %s.\n", pullFn.nameFn)
 			return nil
 		}
 
@@ -66,6 +89,6 @@ var pullCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(pullCmd)
-	pullCmd.ValidArgs = []string{"transaction", "transfer", "credit", "debt", "category", "all"}
+	pullCmd.ValidArgs = []string{"transaction", "transfer", "credit", "debt", "account", "category", "all"}
 	pullCmd.Flags().BoolVarP(&forcePull, "force", "f", false, "truncate data first")
 }
