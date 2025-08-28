@@ -129,7 +129,7 @@ func ColToLetter(n int) string {
 	res := ""
 	for n > 0 {
 		n--
-		res = string('A'+(n%26)) + res
+		res = string(rune('A'+(n%26))) + res
 		n /= 26
 	}
 	return res
