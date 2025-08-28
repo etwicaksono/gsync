@@ -2,37 +2,48 @@ package config
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"time"
 
-	"github.com/etwicaksono/data-transaksi-service/internal/constants"
 	"github.com/spf13/viper"
 )
 
 var configInstance *Config
 
 func LoadConfig() Config {
-	// Get the current working directory
-	wd, err := os.Getwd()
-	if err != nil {
-		slog.ErrorContext(context.Background(), "Failed to get current working directory", slog.String(constants.Error, err.Error()))
-		panic(err.Error())
+	vpr := viper.New()
+	vpr.AutomaticEnv() // real env vars override values from file
+
+	// Candidate locations for .env (first found wins)
+	var candidates []string
+
+	// 1) next to the binary
+	if execPath, err := os.Executable(); err == nil {
+		binDir := filepath.Dir(execPath)
+		candidates = append(candidates, filepath.Join(binDir, ".env"))
+
+		// 2) parent of binary dir (e.g., project root if binary in ./temp)
+		candidates = append(candidates, filepath.Join(binDir, "..", ".env"))
 	}
 
-	// Root folder of this project
-	projectRoot := wd
-	vpr := viper.New()
+	// 3) CWD
+	candidates = append(candidates, ".env")
 
-	vpr.AddConfigPath(projectRoot)
-	vpr.SetConfigFile(fmt.Sprintf("%s/.env", projectRoot))
-	vpr.AutomaticEnv()
-
-	err = vpr.ReadInConfig()
-	if err != nil {
-		slog.ErrorContext(context.Background(), "Failed to read config file", slog.String(constants.Error, err.Error()))
-		panic(err.Error())
+	// Try to read the first existing .env with Viper
+	var readOK bool
+	for _, path := range candidates {
+		vpr.SetConfigFile(filepath.Clean(path))
+		vpr.SetConfigType("env") // tell Viper this is dotenv-style
+		if err := vpr.ReadInConfig(); err == nil {
+			readOK = true
+			break
+		}
+	}
+	if !readOK {
+		// Not fatal: you might rely entirely on OS env vars
+		slog.InfoContext(context.Background(), "No .env file found in candidate locations; relying on environment variables")
 	}
 
 	configInstance = &Config{
