@@ -1,0 +1,108 @@
+package commands
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/account_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/category_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/credit_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/debt_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transaction_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transfer_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/account_db"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/category_db"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/credit_db"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/debt_db"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transaction_db"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transfer_db"
+	"github.com/etwicaksono/data-transaksi-service/internal/config"
+	"github.com/etwicaksono/data-transaksi-service/internal/infrastructure"
+	"github.com/etwicaksono/data-transaksi-service/internal/injector"
+	"github.com/etwicaksono/data-transaksi-service/internal/ports/app"
+	"github.com/etwicaksono/data-transaksi-service/internal/ports/secondary/db"
+	"github.com/spf13/cobra"
+	"gorm.io/gorm"
+)
+
+var (
+	version        = "dev"
+	cfg            config.Config
+	transactionApp app.TransactionAppInterface
+	transferApp    app.TransferAppInterface
+	debtApp        app.DebtAppInterface
+	creditApp      app.CreditAppInterface
+	accountApp     app.AccountAppInterface
+	categoryApp    app.CategoryAppInterface
+	transactionDb  db.TransactionDbInterface
+	transferDb     db.TransferDbInterface
+	creditDb       db.CreditDbInterface
+	debtDb         db.DebtDbInterface
+	accountDb      db.AccountDbInterface
+	categoryDb     db.CategoryDbInterface
+	dbClient       *gorm.DB
+)
+
+var rootCmd = &cobra.Command{
+	Use:   filepath.Base(os.Args[0]),
+	Short: "CLI that syncs google sheets and database",
+	Long:  `CLI that syncs google sheets and database`,
+	// Run omitted so help is shown if no subcommand is provided
+	Run: func(cmd *cobra.Command, args []string) {
+		if cmd.Flags().NFlag() == 0 {
+			_ = cmd.Help()
+		}
+
+		showVersion, _ := cmd.Flags().GetBool("version")
+		if showVersion {
+			fmt.Printf("version: %s\n", version)
+			os.Exit(0)
+		}
+	},
+}
+
+// Execute runs the root command
+func Execute() {
+	var err error
+	ctx := context.Background()
+	cfg = config.LoadConfig()
+
+	logger, err := injector.LoggerInit(cfg.CliApp.App)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	gormAdapter := infrastructure.NewGormDb(ctx, cfg, logger)
+	err = gormAdapter.Connect()
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	defer gormAdapter.Disconnect()
+	dbClient = gormAdapter.GetClient()
+
+	transactionDb = transaction_db.NewTransactionDb(cfg)
+	transferDb = transfer_db.NewTransferDb(cfg)
+	debtDb = debt_db.NewDebtDb(cfg)
+	creditDb = credit_db.NewCreditDb(cfg)
+	accountDb = account_db.NewAccountDb(cfg)
+	categoryDb = category_db.NewCategoryDb(cfg)
+	transactionApp = transaction_app.NewTransactionApp(cfg, transactionDb, dbClient)
+	transferApp = transfer_app.NewTransferApp(cfg, transferDb, dbClient)
+	debtApp = debt_app.NewDebtApp(cfg, dbClient, debtDb)
+	creditApp = credit_app.NewCreditApp(cfg, dbClient, creditDb)
+	accountApp = account_app.NewAccountApp(cfg, dbClient, accountDb)
+	categoryApp = category_app.NewCategoryApp(cfg, dbClient, categoryDb)
+
+	if err = rootCmd.Execute(); err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func init() {
+	rootCmd.Flags().BoolP("version", "v", false, "show version")
+}
