@@ -56,10 +56,13 @@ run-finance-push-resume-detail-2025:
 	go run ./cmd/cli/main.go finance push resume-detail -c "2025!B88" -s "2025-01-01" -e "2025-12-31"
 
 run-finance-push-resume-recap-2023:
-	go run ./cmd/cli/main.go finance push resume-recap -c "2023!B51" -s "2022-12-01" -e "2023-12-31"
+	go run ./cmd/cli/main.go finance push resume-recap -c "2023!B50" -s "2022-12-01" -e "2023-12-31"
 
 run-finance-push-resume-recap-2024:
 	go run ./cmd/cli/main.go finance push resume-recap -c "2024!B50" -s "2024-01-01" -e "2024-12-31"
 
 run-finance-push-resume-recap-2025:
-	go run ./cmd/cli/main.go finance push resume-recap -c "2025!B51" -s "2025-01-01" -e "2025-12-31"
+	go run ./cmd/cli/main.go finance push resume-recap -c "2025!B50" -s "2025-01-01" -e "2025-12-31"
+
+run-finance-push-resume-recap-2026:
+	go run ./cmd/cli/main.go finance push resume-recap -c "2026!B50" -s "2026-01-01" -e "2026-12-31"
