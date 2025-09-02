@@ -90,7 +90,7 @@ func (a *AdapterGorm) Connect() error {
 	sqlDB.SetMaxOpenConns(a.config.Db.MaxOpenConnections)
 	sqlDB.SetMaxIdleConns(a.config.Db.MaxIdleConnections)
 	sqlDB.SetConnMaxLifetime(a.config.Db.MaxConnectionLifetime * time.Second)
-	sqlDB.SetConnMaxIdleTime(a.config.Db.MaxConnectionIdletime * time.Second)
+	sqlDB.SetConnMaxIdleTime(a.config.Db.MaxConnectionIdleTime * time.Second)
 
 	return nil
 }

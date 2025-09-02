@@ -8,13 +8,15 @@ import (
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/util"
 	"github.com/spf13/cobra"
+
+	"golang.org/x/sync/errgroup"
 )
 
-var forcePull bool
-var pullCmd = &cobra.Command{
+var forceFinancePull bool
+var financePullCmd = &cobra.Command{
 	Use:   "pull {transaction|credit|debt|transfer|account|category|all}",
-	Short: "Pull data from sheet to db",
-	Long:  `Pull data from sheet to db`,
+	Short: "Pull finance data from sheet to db",
+	Long:  `Pull finance data from sheet to db`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		if len(args) == 0 {
 			_ = cmd.Help()
@@ -33,39 +35,39 @@ var pullCmd = &cobra.Command{
 		}
 		registry := map[string]pullFn{
 			"transaction": {
-				fn:     func(ctx context.Context, force bool) error { return transactionApp.PullTransaction(ctx, force) },
+				fn:     func(ctx context.Context, force bool) error { return financeApp.PullTransaction(ctx, force) },
 				nameFn: "transaction",
 			},
 			"transfer": {
-				fn:     func(ctx context.Context, force bool) error { return transferApp.PullTransfer(ctx, force) },
+				fn:     func(ctx context.Context, force bool) error { return financeApp.PullTransfer(ctx, force) },
 				nameFn: "transfer",
 			},
 			"credit": {
-				fn:     func(ctx context.Context, force bool) error { return creditApp.PullCredit(ctx, force) },
+				fn:     func(ctx context.Context, force bool) error { return financeApp.PullCredit(ctx, force) },
 				nameFn: "credit",
 			},
 			"debt": {
-				fn:     func(ctx context.Context, force bool) error { return debtApp.PullDebt(ctx, force) },
+				fn:     func(ctx context.Context, force bool) error { return financeApp.PullDebt(ctx, force) },
 				nameFn: "debt",
 			},
 			"account": {
-				fn:     func(ctx context.Context, force bool) error { return accountApp.PullAccount(ctx, force) },
+				fn:     func(ctx context.Context, force bool) error { return financeApp.PullAccount(ctx, force) },
 				nameFn: "account",
 			},
 			"category": {
-				fn:     func(ctx context.Context, force bool) error { return categoryApp.PullCategory(ctx, force) },
+				fn:     func(ctx context.Context, force bool) error { return financeApp.PullCategory(ctx, force) },
 				nameFn: "category",
 			},
 		}
 
 		// Helper to run one target with nice error context
-		runOne := func(name string) error {
+		runOne := func(ctx context.Context, name string) error {
 			pullFn, ok := registry[name]
 			if !ok {
 				return fmt.Errorf("invalid target %q; available: transaction, transfer, credit, debt, account, category, all", name)
 			}
 			fmt.Printf("Start pulling %s...\n", pullFn.nameFn)
-			if err := pullFn.fn(ctx, forcePull); err != nil {
+			if err := pullFn.fn(ctx, forceFinancePull); err != nil {
 				return fmt.Errorf("error in %s: %w", name, err)
 			}
 			fmt.Printf("Success pulling %s.\n", pullFn.nameFn)
@@ -75,20 +77,23 @@ var pullCmd = &cobra.Command{
 		// Handle "all" or a single target
 		if target == "all" {
 			order := []string{"transaction", "transfer", "credit", "debt", "account", "category"}
+			// Create an errgroup with the context
+			g, ctx := errgroup.WithContext(ctx)
 			for _, name := range order {
-				if err := runOne(name); err != nil {
-					return err
-				}
+				g.Go(func() error { return runOne(ctx, name) })
+			}
+			if err := g.Wait(); err != nil {
+				return fmt.Errorf("error in all: %w", err)
 			}
 			return nil
 		}
 
-		return runOne(target)
+		return runOne(ctx, target)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(pullCmd)
-	pullCmd.ValidArgs = []string{"transaction", "transfer", "credit", "debt", "account", "category", "all"}
-	pullCmd.Flags().BoolVarP(&forcePull, "force", "f", false, "truncate data first")
+	financeCmd.AddCommand(financePullCmd)
+	financePullCmd.ValidArgs = []string{"transaction", "transfer", "credit", "debt", "account", "category", "all"}
+	financePullCmd.Flags().BoolVarP(&forceFinancePull, "force", "f", false, "truncate data first")
 }

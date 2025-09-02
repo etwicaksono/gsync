@@ -1,4 +1,4 @@
-package transaction_app
+package finance_app
 
 import (
 	"context"
@@ -14,16 +14,16 @@ import (
 	"github.com/guregu/null"
 )
 
-func (a adapter) PullTransaction(ctx context.Context, truncateFirst bool) (err error) {
+func (a adapter) PullDebt(ctx context.Context, truncateFirst bool) (err error) {
 	// Context with timeout
 	ctx, cancel := context.WithTimeout(ctx, a.cfg.CliApp.CliTimeout)
 	defer cancel()
 
 	// Sheets service
-	srv := util.MustSheetsService(ctx, a.cfg.Gsheet.CredentialPath)
+	srv := util.MustSheetsService(ctx, a.cfg.GsheetDataTransaksi.CredentialPath)
 
 	// Read with positions (FIXED for ranges like Y5:AL20 and quoted sheet names)
-	srcGrid, err := util.ReadSheetWithPos(ctx, srv, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange, 7)
+	srcGrid, err := util.ReadSheetWithPos(ctx, srv, a.cfg.GsheetDataTransaksi.Id, a.cfg.GsheetDataTransaksi.DebtRange, 4)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to read sheet", slog.String(constants.Error, err.Error()))
 		return err
@@ -32,7 +32,7 @@ func (a adapter) PullTransaction(ctx context.Context, truncateFirst bool) (err e
 	for _, row := range srcGrid {
 		totalCells += len(row)
 	}
-	slog.InfoContext(ctx, fmt.Sprintf("Read %d row(s), %d cell(s) from %s %q", len(srcGrid), totalCells, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange))
+	slog.InfoContext(ctx, fmt.Sprintf("Read %d row(s), %d cell(s) from %s %q", len(srcGrid), totalCells, a.cfg.GsheetDataTransaksi.Id, a.cfg.GsheetDataTransaksi.TransactionRange))
 
 	authData, err := util.GetAuthData(ctx)
 	if err != nil {
@@ -40,41 +40,31 @@ func (a adapter) PullTransaction(ctx context.Context, truncateFirst bool) (err e
 		return
 	}
 	// save data to db
-	var upsertData = make([]entity.Transaction, 0)
+	var upsertData = make([]entity.Debt, 0)
 	for _, row := range srcGrid {
 		if len(row) == 0 {
 			continue
 		}
 
-		if util.NonEmpty(row, 0, 1, 2, 3, 4, 6) {
+		if util.NonEmpty(row, 0, 1, 2, 3) {
 			idParsed := row[0]
-			dateParsed := row[1]
-			accountParsed := row[2]
-			categoryParsed := row[3]
-			amountParsed := row[4]
-			noteParsed := row[5]
-			typeParsed := row[6]
+			accountParsed := row[1]
+			nameParsed := row[2]
+			amountParsed := row[3]
 
 			id, _ := strconv.ParseInt(strings.TrimSpace(idParsed.Val), 10, 64)
-			dateFloat, _ := strconv.ParseFloat(strings.TrimSpace(dateParsed.Val), 64)
 			amountFloat, _ := strconv.ParseFloat(strings.TrimSpace(amountParsed.Val), 64)
 
-			upsertData = append(upsertData, entity.Transaction{
-				ID:       id,
-				Date:     util.FromSheetSerialDate(dateFloat),
-				Account:  strings.TrimSpace(accountParsed.Val),
-				Category: strings.TrimSpace(categoryParsed.Val),
-				Amount:   amountFloat,
-				Note:     strings.TrimSpace(noteParsed.Val),
-				Type:     strings.TrimSpace(typeParsed.Val),
-				Position: &entity.TransactionPosition{
-					ID:       idParsed.Cell,
-					Date:     dateParsed.Cell,
-					Account:  accountParsed.Cell,
-					Category: categoryParsed.Cell,
-					Amount:   amountParsed.Cell,
-					Note:     noteParsed.Cell,
-					Type:     typeParsed.Cell,
+			upsertData = append(upsertData, entity.Debt{
+				ID:      id,
+				Account: strings.TrimSpace(accountParsed.Val),
+				Name:    strings.TrimSpace(nameParsed.Val),
+				Amount:  amountFloat,
+				Position: &entity.DebtPosition{
+					ID:      idParsed.Cell,
+					Account: accountParsed.Cell,
+					Name:    nameParsed.Cell,
+					Amount:  amountParsed.Cell,
 				},
 				TimeStamps: entity.TimeStamps{
 					CreatedAt: time.Now(),
@@ -88,9 +78,9 @@ func (a adapter) PullTransaction(ctx context.Context, truncateFirst bool) (err e
 
 	tx := a.dbClient.WithContext(ctx).Begin()
 	defer tx.Rollback()
-	_, err = a.transactionDb.BulkUpsert(ctx, tx, upsertData, truncateFirst)
+	_, err = a.debtDb.BulkUpsert(ctx, tx, upsertData, truncateFirst)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to bulk upsert transactions", slog.String(constants.Error, err.Error()))
+		slog.ErrorContext(ctx, "failed to bulk upsert debt", slog.String(constants.Error, err.Error()))
 		return err
 	}
 

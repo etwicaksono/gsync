@@ -3,11 +3,14 @@ module github.com/etwicaksono/data-transaksi-service
 go 1.23.8
 
 require (
+	github.com/google/wire v0.7.0
 	github.com/guregu/null v4.0.0+incompatible
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
+	golang.org/x/sync v0.10.0
 	google.golang.org/api v0.215.0
+	gorm.io/datatypes v1.2.6
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.30.1
 )
