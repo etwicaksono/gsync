@@ -75,3 +75,8 @@ run-finance-push-resume-recap-2026:
 
 run-finance-push-resume-recap-2027:
 	go run ./cmd/cli/main.go finance push resume-recap -c "2027!B50" -s "2027-01-01" -e "2027-12-31"
+
+run-finance-sync-2025:
+	go run ./cmd/cli/main.go finance pull all
+	go run ./cmd/cli/main.go finance push resume-detail -c "2025!B88" -s "2025-01-01" -e "2025-12-31"
+	go run ./cmd/cli/main.go finance push resume-recap -c "2027!B50" -s "2027-01-01" -e "2027-12-31"
