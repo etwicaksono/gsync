@@ -11,17 +11,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var resumeStartColRange, startDateStr, endDateStr string
-
 const (
 	resumeDetail = "resume-detail"
 	resumeRecap  = "resume-recap"
 )
 
+var financePushArgs = []string{resumeDetail, resumeRecap}
+var resumeStartColRange, startDateStr, endDateStr string
 var financePushCmd = &cobra.Command{
-	Use:   "push {resume-detail}",
-	Short: "Push finance data from db to sheet",
-	Long:  `Push finance data from db to sheet`,
+	Use:       "push {args}",
+	Short:     "Push finance data from db to sheet",
+	Long:      `Push finance data from db to sheet`,
+	ValidArgs: append(financePushArgs, "all"),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		if len(args) == 0 {
 			_ = cmd.Help()
@@ -73,7 +74,7 @@ var financePushCmd = &cobra.Command{
 		runOne := func(name string) error {
 			pushFn, ok := registry[name]
 			if !ok {
-				return fmt.Errorf("invalid target %q; available: %s", name, resumeDetail, resumeRecap)
+				return fmt.Errorf("invalid target %q; available: %s", name, cmd.ValidArgs)
 			}
 			fmt.Printf("Start pushing %s from %s to %s...\n", pushFn.nameFn, startDateStr, endDateStr)
 			if err := pushFn.fn(ctx); err != nil {
@@ -85,8 +86,7 @@ var financePushCmd = &cobra.Command{
 
 		// Handle "all" or a single target
 		if target == "all" {
-			order := []string{resumeDetail, resumeRecap}
-			for _, name := range order {
+			for _, name := range financePushArgs {
 				if err := runOne(name); err != nil {
 					return err
 				}
@@ -100,8 +100,8 @@ var financePushCmd = &cobra.Command{
 
 func init() {
 	financeCmd.AddCommand(financePushCmd)
-	financePushCmd.ValidArgs = []string{resumeDetail, resumeRecap}
 
+	financePushCmd.Use = fmt.Sprintf(fmt.Sprint("push ", financePushCmd.ValidArgs))
 	financePushCmd.Flags().StringVarP(&resumeStartColRange, "start-col", "c", "", "Start column range, e.g. ExampleSheet!A3:C3")
 	financePushCmd.Flags().StringVarP(&startDateStr, "start-date", "s", "", "Start date, e.g. 2021-01-01")
 	financePushCmd.Flags().StringVarP(&endDateStr, "end-date", "e", "", "End date, e.g. 2021-01-31")

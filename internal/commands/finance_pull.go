@@ -12,11 +12,22 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	transaction = "transaction"
+	transfer    = "transfer"
+	credit      = "credit"
+	debt        = "debt"
+	account     = "account"
+	category    = "category"
+)
+
+var financePullArgs = []string{transaction, transfer, credit, debt, account, category}
 var forceFinancePull bool
 var financePullCmd = &cobra.Command{
-	Use:   "pull {transaction|credit|debt|transfer|account|category|all}",
-	Short: "Pull finance data from sheet to db",
-	Long:  `Pull finance data from sheet to db`,
+	Use:       "pull {args}",
+	Short:     "Pull finance data from sheet to db",
+	Long:      `Pull finance data from sheet to db`,
+	ValidArgs: append(financePullArgs, "all"),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		if len(args) == 0 {
 			_ = cmd.Help()
@@ -34,29 +45,29 @@ var financePullCmd = &cobra.Command{
 			nameFn string
 		}
 		registry := map[string]pullFn{
-			"transaction": {
+			transaction: {
 				fn:     func(ctx context.Context, force bool) error { return financeApp.PullTransaction(ctx, force) },
-				nameFn: "transaction",
+				nameFn: transaction,
 			},
-			"transfer": {
+			transfer: {
 				fn:     func(ctx context.Context, force bool) error { return financeApp.PullTransfer(ctx, force) },
-				nameFn: "transfer",
+				nameFn: transfer,
 			},
-			"credit": {
+			credit: {
 				fn:     func(ctx context.Context, force bool) error { return financeApp.PullCredit(ctx, force) },
-				nameFn: "credit",
+				nameFn: credit,
 			},
-			"debt": {
+			debt: {
 				fn:     func(ctx context.Context, force bool) error { return financeApp.PullDebt(ctx, force) },
-				nameFn: "debt",
+				nameFn: debt,
 			},
-			"account": {
+			account: {
 				fn:     func(ctx context.Context, force bool) error { return financeApp.PullAccount(ctx, force) },
-				nameFn: "account",
+				nameFn: account,
 			},
-			"category": {
+			category: {
 				fn:     func(ctx context.Context, force bool) error { return financeApp.PullCategory(ctx, force) },
-				nameFn: "category",
+				nameFn: category,
 			},
 		}
 
@@ -64,7 +75,7 @@ var financePullCmd = &cobra.Command{
 		runOne := func(ctx context.Context, name string) error {
 			pullFn, ok := registry[name]
 			if !ok {
-				return fmt.Errorf("invalid target %q; available: transaction, transfer, credit, debt, account, category, all", name)
+				return fmt.Errorf("invalid target %q; available: %s", name, cmd.ValidArgs)
 			}
 			fmt.Printf("Start pulling %s...\n", pullFn.nameFn)
 			if err := pullFn.fn(ctx, forceFinancePull); err != nil {
@@ -76,10 +87,9 @@ var financePullCmd = &cobra.Command{
 
 		// Handle "all" or a single target
 		if target == "all" {
-			order := []string{"transaction", "transfer", "credit", "debt", "account", "category"}
 			// Create an errgroup with the context
 			g, ctx := errgroup.WithContext(ctx)
-			for _, name := range order {
+			for _, name := range financePullArgs {
 				g.Go(func() error { return runOne(ctx, name) })
 			}
 			if err := g.Wait(); err != nil {
@@ -94,6 +104,8 @@ var financePullCmd = &cobra.Command{
 
 func init() {
 	financeCmd.AddCommand(financePullCmd)
+
+	financePullCmd.Use = fmt.Sprintf(fmt.Sprint("pull ", financePullCmd.ValidArgs))
 	financePullCmd.ValidArgs = []string{"transaction", "transfer", "credit", "debt", "account", "category", "all"}
 	financePullCmd.Flags().BoolVarP(&forceFinancePull, "force", "f", false, "truncate data first")
 }

@@ -40,6 +40,9 @@ run-finance-pull-account:
 run-finance-pull-category:
 	go run ./cmd/cli/main.go finance pull category
 
+run-finance-push:
+	go run ./cmd/cli/main.go finance push -c "Resume!B3" -s "2022-12-01" -e "2026-12-31"
+
 run-finance-push-resume-detail-all:
 	go run ./cmd/cli/main.go finance push resume-detail -c "Resume!B3" -s "2022-12-01" -e "2026-12-31"
 
