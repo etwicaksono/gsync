@@ -12,6 +12,12 @@ import (
 )
 
 var resumeStartColRange, startDateStr, endDateStr string
+
+const (
+	resumeDetail = "resume-detail"
+	resumeRecap  = "resume-recap"
+)
+
 var financePushCmd = &cobra.Command{
 	Use:   "push {resume-detail}",
 	Short: "Push finance data from db to sheet",
@@ -43,14 +49,23 @@ var financePushCmd = &cobra.Command{
 			nameFn string
 		}
 		registry := map[string]pushFn{
-			"resume-detail": {
+			resumeDetail: {
 				fn: func(ctx context.Context) error {
 					return financeApp.PushResumeDetail(ctx, resumeStartColRange, entity.VResumeDetailListFilter{
 						StartDate: startDate,
 						EndDate:   endDate,
 					})
 				},
-				nameFn: "resume-detail",
+				nameFn: resumeDetail,
+			},
+			resumeRecap: {
+				fn: func(ctx context.Context) error {
+					return financeApp.PushResumeRecap(ctx, resumeStartColRange, entity.VResumeDetailListFilter{
+						StartDate: startDate,
+						EndDate:   endDate,
+					})
+				},
+				nameFn: resumeRecap,
 			},
 		}
 
@@ -58,7 +73,7 @@ var financePushCmd = &cobra.Command{
 		runOne := func(name string) error {
 			pushFn, ok := registry[name]
 			if !ok {
-				return fmt.Errorf("invalid target %q; available: resume-detail", name)
+				return fmt.Errorf("invalid target %q; available: %s", name, resumeDetail, resumeRecap)
 			}
 			fmt.Printf("Start pushing %s from %s to %s...\n", pushFn.nameFn, startDateStr, endDateStr)
 			if err := pushFn.fn(ctx); err != nil {
@@ -70,7 +85,7 @@ var financePushCmd = &cobra.Command{
 
 		// Handle "all" or a single target
 		if target == "all" {
-			order := []string{"resume"}
+			order := []string{resumeDetail, resumeRecap}
 			for _, name := range order {
 				if err := runOne(name); err != nil {
 					return err
@@ -85,7 +100,7 @@ var financePushCmd = &cobra.Command{
 
 func init() {
 	financeCmd.AddCommand(financePushCmd)
-	financePushCmd.ValidArgs = []string{"resume-detail"}
+	financePushCmd.ValidArgs = []string{resumeDetail, resumeRecap}
 
 	financePushCmd.Flags().StringVarP(&resumeStartColRange, "start-col", "c", "", "Start column range, e.g. ExampleSheet!A3:C3")
 	financePushCmd.Flags().StringVarP(&startDateStr, "start-date", "s", "", "Start date, e.g. 2021-01-01")

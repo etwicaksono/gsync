@@ -14,4 +14,5 @@ type FinanceAppInterface interface {
 	PullTransaction(ctx context.Context, truncateFirst bool) (err error)
 	PullTransfer(ctx context.Context, truncateFirst bool) (err error)
 	PushResumeDetail(ctx context.Context, resumeStartColRange string, filter entity.VResumeDetailListFilter) (err error)
+	PushResumeRecap(ctx context.Context, resumeStartColRange string, filter entity.VResumeDetailListFilter) (err error)
 }

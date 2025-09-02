@@ -20,14 +20,14 @@ func (a adapter) PushResumeDetail(ctx context.Context, resumeStartColRange strin
 	defer cancel()
 
 	tx := a.dbClient.WithContext(ctx)
-	vResumeDetailList, err := a.vResumeDetailDb.ListResumeDetail(ctx, tx, filter)
+	resumeDetailList, err := a.vResumeDetailDb.ListResumeDetail(ctx, tx, filter)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to list all vResumeDb", slog.String(constants.Error, err.Error()))
 		return err
 	}
 
-	var header = []string{"No", "Code"} // setup first row as header
-	for _, v := range vResumeDetailList[0].Monthly {
+	var header = []string{"ID", "Code"} // setup first row as header
+	for _, v := range resumeDetailList[0].Monthly {
 		ymLong, err := util.YMToLong(v.YM)
 		if err != nil {
 			ymLong = v.YM
@@ -38,7 +38,7 @@ func (a adapter) PushResumeDetail(ctx context.Context, resumeStartColRange strin
 	var rowData = [][]string{
 		header,
 	}
-	for _, v := range vResumeDetailList {
+	for _, v := range resumeDetailList {
 		var row = []string{strconv.Itoa(int(v.ID)), v.Code}
 		for _, m := range v.Monthly {
 			row = append(row, fmt.Sprintf("%.2f", m.Amt))
