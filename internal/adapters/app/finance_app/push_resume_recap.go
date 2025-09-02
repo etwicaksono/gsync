@@ -58,6 +58,11 @@ func (a adapter) PushResumeRecap(ctx context.Context, resumeStartColRange string
 
 	srv := util.MustSheetsService(ctx, a.cfg.GsheetRekapKeuangan.CredentialPath)
 
+	if _, err = util.EnsureTargetSheet(ctx, srv, spreadsheetID, sheetTitle, true); err != nil {
+		slog.ErrorContext(ctx, "failed to ensure target sheet", slog.String(constants.Error, err.Error()))
+		return fmt.Errorf("ensure target sheet: %w", err)
+	}
+
 	// 2) Build batch update requests
 	var data = []*sheets.ValueRange{
 		{

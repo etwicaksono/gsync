@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
+	"github.com/etwicaksono/data-transaksi-service/internal/constants"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
@@ -192,6 +194,7 @@ func EnsureTargetSheet(ctx context.Context, srv *sheets.Service, spreadsheetID, 
 		Fields("sheets(properties(title,sheetId))").
 		Context(ctx).Do()
 	if err != nil {
+		slog.ErrorContext(ctx, "failed to read target spreadsheet", slog.String(constants.Error, err.Error()))
 		return 0, fmt.Errorf("cannot open target spreadsheet (bad ID or no permission): %w", err)
 	}
 	for _, sh := range ss.Sheets {
@@ -211,6 +214,7 @@ func EnsureTargetSheet(ctx context.Context, srv *sheets.Service, spreadsheetID, 
 	}
 	resp, err := srv.Spreadsheets.BatchUpdate(spreadsheetID, req).Context(ctx).Do()
 	if err != nil {
+		slog.ErrorContext(ctx, "failed to create target sheet", slog.String(constants.Error, err.Error()))
 		return 0, fmt.Errorf("failed to create sheet %q: %w", sheetTitle, err)
 	}
 	for _, r := range resp.Replies {

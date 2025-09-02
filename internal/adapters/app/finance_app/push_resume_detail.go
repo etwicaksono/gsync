@@ -44,7 +44,7 @@ func (a adapter) PushResumeDetail(ctx context.Context, resumeStartColRange strin
 			row = append(row, fmt.Sprintf("%.2f", m.Amt))
 		}
 		if len(row) != len(header) {
-			log.Printf("Malformed row: %v", row)
+			slog.ErrorContext(ctx, "malformed row", slog.String(constants.Error, "malformed row"), slog.Any("row", row))
 			continue
 		}
 
@@ -57,6 +57,10 @@ func (a adapter) PushResumeDetail(ctx context.Context, resumeStartColRange strin
 	endColLetter := util.ColToLetter(len(rowData[0]) + firstCol - 1)
 
 	srv := util.MustSheetsService(ctx, a.cfg.GsheetRekapKeuangan.CredentialPath)
+	if _, err = util.EnsureTargetSheet(ctx, srv, spreadsheetID, sheetTitle, true); err != nil {
+		slog.ErrorContext(ctx, "failed to ensure target sheet", slog.String(constants.Error, err.Error()))
+		return fmt.Errorf("ensure target sheet: %w", err)
+	}
 
 	// 2) Build batch update requests
 	var data = []*sheets.ValueRange{
