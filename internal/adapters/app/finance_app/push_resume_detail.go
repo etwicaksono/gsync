@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"strconv"
+	"time"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/util"
@@ -58,10 +59,15 @@ func (a adapter) PushResumeDetail(ctx context.Context, resumeStartColRange strin
 	srv := util.MustSheetsService(ctx, a.cfg.GsheetRekapKeuangan.CredentialPath)
 
 	// 2) Build batch update requests
-	var data []*sheets.ValueRange
+	var data = []*sheets.ValueRange{
+		{
+			Range:  fmt.Sprintf("%s!A1", util.QuoteSheet(sheetTitle)),
+			Values: [][]interface{}{{fmt.Sprintf("Last Update: %s", time.Now().Format(time.DateTime))}},
+		},
+	}
 	row := firstRow
 	for _, c := range rowData {
-		if len(c) < 8 {
+		if len(c) < len(header) {
 			continue // skip malformed rows
 		}
 		rng := fmt.Sprintf("%s!%s%d:%s%d",
