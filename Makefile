@@ -1,33 +1,82 @@
-run:
-	go run ./cmd/cli/main.go
+# Run wire to generate dependency injection code
+wire:
+	@echo "Running Wire..."
+	wire ./injector
 
 deploy:
 	go build -o "D:\Apps\gsync\gsync.exe" "cmd/cli/main.go"
 	copy .env "D:\Apps\gsync\.env"
 
-run-pull:
-	go run ./cmd/cli/main.go pull
+run:
+	go run ./cmd/cli/main.go
 
-run-pull-h:
-	go run ./cmd/cli/main.go pull -h
+run-finance:
+	go run ./cmd/cli/main.go finance
 
-run-pull-all:
-	go run ./cmd/cli/main.go pull all
+run-finance-pull:
+	go run ./cmd/cli/main.go finance pull
 
-run-pull-transaction:
-	go run ./cmd/cli/main.go pull transaction
+run-finance-pull-h:
+	go run ./cmd/cli/main.go finance pull -h
 
-run-pull-credit:
-	go run ./cmd/cli/main.go pull credit
+run-finance-pull-all:
+	go run ./cmd/cli/main.go finance pull all
 
-run-pull-debt:
-	go run ./cmd/cli/main.go pull debt
+run-finance-pull-transaction:
+	go run ./cmd/cli/main.go finance pull transaction
 
-run-pull-transfer:
-	go run ./cmd/cli/main.go pull transfer
+run-finance-pull-credit:
+	go run ./cmd/cli/main.go finance pull credit
 
-run-pull-account:
-	go run ./cmd/cli/main.go pull account
+run-finance-pull-debt:
+	go run ./cmd/cli/main.go finance pull debt
 
-run-pull-category:
-	go run ./cmd/cli/main.go pull category
+run-finance-pull-transfer:
+	go run ./cmd/cli/main.go finance pull transfer
+
+run-finance-pull-account:
+	go run ./cmd/cli/main.go finance pull account
+
+run-finance-pull-category:
+	go run ./cmd/cli/main.go finance pull category
+
+run-finance-push:
+	go run ./cmd/cli/main.go finance push -c "Resume!B3" -s "2022-12-01" -e "2026-12-31"
+
+run-finance-push-resume-detail-all:
+	go run ./cmd/cli/main.go finance push resume-detail -c "Resume!B3" -s "2022-12-01" -e "2026-12-31"
+
+run-finance-push-resume-detail-2023:
+	go run ./cmd/cli/main.go finance push resume-detail -c "2023!B88" -s "2022-12-01" -e "2023-12-31"
+
+run-finance-push-resume-detail-2024:
+	go run ./cmd/cli/main.go finance push resume-detail -c "2024!B88" -s "2024-01-01" -e "2024-12-31"
+
+run-finance-push-resume-detail-2025:
+	go run ./cmd/cli/main.go finance push resume-detail -c "2025!B88" -s "2025-01-01" -e "2025-12-31"
+
+run-finance-push-resume-detail-2026:
+	go run ./cmd/cli/main.go finance push resume-detail -c "2026!B88" -s "2026-01-01" -e "2026-12-31"
+
+run-finance-push-resume-detail-2027:
+	go run ./cmd/cli/main.go finance push resume-detail -c "2027!B88" -s "2027-01-01" -e "2027-12-31"
+
+run-finance-push-resume-recap-2023:
+	go run ./cmd/cli/main.go finance push resume-recap -c "2023!B50" -s "2022-12-01" -e "2023-12-31"
+
+run-finance-push-resume-recap-2024:
+	go run ./cmd/cli/main.go finance push resume-recap -c "2024!B50" -s "2024-01-01" -e "2024-12-31"
+
+run-finance-push-resume-recap-2025:
+	go run ./cmd/cli/main.go finance push resume-recap -c "2025!B50" -s "2025-01-01" -e "2025-12-31"
+
+run-finance-push-resume-recap-2026:
+	go run ./cmd/cli/main.go finance push resume-recap -c "2026!B50" -s "2026-01-01" -e "2026-12-31"
+
+run-finance-push-resume-recap-2027:
+	go run ./cmd/cli/main.go finance push resume-recap -c "2027!B50" -s "2027-01-01" -e "2027-12-31"
+
+run-finance-sync-2025:
+	go run ./cmd/cli/main.go finance pull all
+	go run ./cmd/cli/main.go finance push resume-detail -c "2025!B88" -s "2025-01-01" -e "2025-12-31"
+	go run ./cmd/cli/main.go finance push resume-recap -c "2025!B50" -s "2025-01-01" -e "2025-12-31"

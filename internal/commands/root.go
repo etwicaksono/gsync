@@ -6,43 +6,17 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/account_app"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/category_app"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/credit_app"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/debt_app"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transaction_app"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/transfer_app"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/account_db"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/category_db"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/credit_db"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/debt_db"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transaction_db"
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/transfer_db"
+	"github.com/etwicaksono/data-transaksi-service/injector"
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
 	"github.com/etwicaksono/data-transaksi-service/internal/infrastructure"
-	"github.com/etwicaksono/data-transaksi-service/internal/injector"
 	"github.com/etwicaksono/data-transaksi-service/internal/ports/app"
-	"github.com/etwicaksono/data-transaksi-service/internal/ports/secondary/db"
 	"github.com/spf13/cobra"
-	"gorm.io/gorm"
 )
 
 var (
-	version        = "dev"
-	cfg            config.Config
-	transactionApp app.TransactionAppInterface
-	transferApp    app.TransferAppInterface
-	debtApp        app.DebtAppInterface
-	creditApp      app.CreditAppInterface
-	accountApp     app.AccountAppInterface
-	categoryApp    app.CategoryAppInterface
-	transactionDb  db.TransactionDbInterface
-	transferDb     db.TransferDbInterface
-	creditDb       db.CreditDbInterface
-	debtDb         db.DebtDbInterface
-	accountDb      db.AccountDbInterface
-	categoryDb     db.CategoryDbInterface
-	dbClient       *gorm.DB
+	version    = "dev"
+	cfg        config.Config
+	financeApp app.FinanceAppInterface
 )
 
 var rootCmd = &cobra.Command{
@@ -82,20 +56,9 @@ func Execute() {
 		os.Exit(1)
 	}
 	defer gormAdapter.Disconnect()
-	dbClient = gormAdapter.GetClient()
+	dbClient := gormAdapter.GetClient()
 
-	transactionDb = transaction_db.NewTransactionDb(cfg)
-	transferDb = transfer_db.NewTransferDb(cfg)
-	debtDb = debt_db.NewDebtDb(cfg)
-	creditDb = credit_db.NewCreditDb(cfg)
-	accountDb = account_db.NewAccountDb(cfg)
-	categoryDb = category_db.NewCategoryDb(cfg)
-	transactionApp = transaction_app.NewTransactionApp(cfg, transactionDb, dbClient)
-	transferApp = transfer_app.NewTransferApp(cfg, transferDb, dbClient)
-	debtApp = debt_app.NewDebtApp(cfg, dbClient, debtDb)
-	creditApp = credit_app.NewCreditApp(cfg, dbClient, creditDb)
-	accountApp = account_app.NewAccountApp(cfg, dbClient, accountDb)
-	categoryApp = category_app.NewCategoryApp(cfg, dbClient, categoryDb)
+	financeApp = injector.FinanceAppProvider(cfg, dbClient)
 
 	if err = rootCmd.Execute(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)

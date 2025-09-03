@@ -13,6 +13,7 @@ import (
 var configInstance *Config
 
 func LoadConfig() Config {
+	// TODO: change to envconfig
 	vpr := viper.New()
 	vpr.AutomaticEnv() // real env vars override values from file
 
@@ -64,17 +65,22 @@ func LoadConfig() Config {
 			MaxOpenConnections:    coalesce(vpr.GetInt("DB_MAX_OPEN_CONNECTIONS"), 10),
 			MaxIdleConnections:    coalesce(vpr.GetInt("DB_MAX_IDLE_CONNECTIONS"), 2),
 			MaxConnectionLifetime: coalesce(vpr.GetDuration("DB_MAX_CONNECTION_LIFETIME"), 60*time.Second),
-			MaxConnectionIdletime: coalesce(vpr.GetDuration("DB_MAX_CONNECTION_IDLE_TIME"), 20*time.Second),
+			MaxConnectionIdleTime: coalesce(vpr.GetDuration("DB_MAX_CONNECTION_IDLE_TIME"), 20*time.Second),
 		},
-		Gsheet: GsheetConfig{
-			Id:               vpr.GetString("GSHEET_ID"),
+		GsheetDataTransaksi: GsheetDataTransaksi{
+			Id:               vpr.GetString("GSHEET_DATA_TRANSAKSI_ID"),
 			CredentialPath:   vpr.GetString("GSHEET_CREDENTIAL_PATH"),
-			TransactionRange: coalesce(vpr.GetString("GSHEET_TRANSACTION_RANGE"), "Transaction!B5:H"),
-			TransferRange:    coalesce(vpr.GetString("GSHEET_TRANSFER_RANGE"), "Transaction!B5:G"),
-			CreditRange:      coalesce(vpr.GetString("GSHEET_CREDIT_RANGE"), "Liquid Assets!O5:R27"),
-			DebtRange:        coalesce(vpr.GetString("GSHEET_DEBT_RANGE"), "Liquid Assets!U5:X27"),
-			AccountRange:     coalesce(vpr.GetString("GSHEET_ACCOUNT_RANGE"), "Liquid Assets!B5:M28"),
-			CategoryRange:    coalesce(vpr.GetString("GSHEET_CATEGORY_RANGE"), "Categories & Budget Mapping!B5:G98"),
+			TransactionRange: coalesce(vpr.GetString("GSHEET_DATA_TRANSAKSI_TRANSACTION_RANGE"), "Transaction!B5:H"),
+			TransferRange:    coalesce(vpr.GetString("GSHEET_DATA_TRANSAKSI_TRANSFER_RANGE"), "Transaction!B5:G"),
+			CreditRange:      coalesce(vpr.GetString("GSHEET_DATA_TRANSAKSI_CREDIT_RANGE"), "Liquid Assets!O5:R27"),
+			DebtRange:        coalesce(vpr.GetString("GSHEET_DATA_TRANSAKSI_DEBT_RANGE"), "Liquid Assets!U5:X27"),
+			AccountRange:     coalesce(vpr.GetString("GSHEET_DATA_TRANSAKSI_ACCOUNT_RANGE"), "Liquid Assets!B5:M28"),
+			CategoryRange:    coalesce(vpr.GetString("GSHEET_DATA_TRANSAKSI_CATEGORY_RANGE"), "Categories & Budget Mapping!B5:G98"),
+		},
+		GsheetRekapKeuangan: GsheetRekapKeuangan{
+			Id:                  vpr.GetString("GSHEET_REKAP_KEUANGAN_ID"),
+			CredentialPath:      vpr.GetString("GSHEET_CREDENTIAL_PATH"),
+			ResumeStartColRange: coalesce(vpr.GetString("GSHEET_REKAP_KEUANGAN_RESUME_START_COL_RANGE"), "Resume!B3"),
 		},
 	}
 

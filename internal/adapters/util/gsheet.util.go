@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
+	"github.com/etwicaksono/data-transaksi-service/internal/constants"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
@@ -185,4 +187,105 @@ func NonEmpty(row []entity.ReadData, idx ...int) bool {
 		}
 	}
 	return true
+}
+
+func EnsureTargetSheet(ctx context.Context, srv *sheets.Service, spreadsheetID, sheetTitle string, createIfMissing bool) (int64, error) {
+	ss, err := srv.Spreadsheets.Get(spreadsheetID).
+		Fields("sheets(properties(title,sheetId))").
+		Context(ctx).Do()
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to read target spreadsheet", slog.String(constants.Error, err.Error()))
+		return 0, fmt.Errorf("cannot open target spreadsheet (bad ID or no permission): %w", err)
+	}
+	for _, sh := range ss.Sheets {
+		if sh.Properties != nil && sh.Properties.Title == sheetTitle {
+			return sh.Properties.SheetId, nil
+		}
+	}
+	if !createIfMissing {
+		return 0, fmt.Errorf("sheet/tab %q not found in target", sheetTitle)
+	}
+	req := &sheets.BatchUpdateSpreadsheetRequest{
+		Requests: []*sheets.Request{
+			{AddSheet: &sheets.AddSheetRequest{
+				Properties: &sheets.SheetProperties{Title: sheetTitle},
+			}},
+		},
+	}
+	resp, err := srv.Spreadsheets.BatchUpdate(spreadsheetID, req).Context(ctx).Do()
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create target sheet", slog.String(constants.Error, err.Error()))
+		return 0, fmt.Errorf("failed to create sheet %q: %w", sheetTitle, err)
+	}
+	for _, r := range resp.Replies {
+		if r.AddSheet != nil && r.AddSheet.Properties != nil && r.AddSheet.Properties.Title == sheetTitle {
+			return r.AddSheet.Properties.SheetId, nil
+		}
+	}
+	return 0, fmt.Errorf("sheet %q creation did not return a sheetId", sheetTitle)
+}
+
+// ReadSheetRaw is a simple [][]string reader for places we don't need positions.
+func ReadSheetRaw(ctx context.Context, srv *sheets.Service, spreadsheetID, a1Range string) ([][]string, error) {
+	resp, err := srv.Spreadsheets.Values.Get(spreadsheetID, a1Range).Context(ctx).Do()
+	if err != nil {
+		return nil, err
+	}
+	vals := make([][]string, len(resp.Values))
+	for i, row := range resp.Values {
+		vals[i] = make([]string, len(row))
+		for j, cell := range row {
+			vals[i][j] = fmt.Sprint(cell)
+		}
+	}
+	return vals, nil
+}
+
+func GridValues(grid [][]entity.ReadData) [][]string {
+	out := make([][]string, len(grid))
+	for i := range grid {
+		out[i] = make([]string, len(grid[i]))
+		for j := range grid[i] {
+			out[i][j] = grid[i][j].Val
+		}
+	}
+	return out
+}
+
+func FindHeaderIndex(header []string, name string) int {
+	name = strings.TrimSpace(strings.ToLower(name))
+	for i, h := range header {
+		if strings.ToLower(strings.TrimSpace(h)) == name {
+			return i + 1 // 1-based
+		}
+	}
+	return 0
+}
+
+func SafeCell(row []string, oneBasedIdx int) string {
+	i := oneBasedIdx - 1
+	if i < 0 || i >= len(row) {
+		return ""
+	}
+	return row[i]
+}
+
+func MaxRowWidth(rows [][]string) int {
+	w := 0
+	for _, r := range rows {
+		if len(r) > w {
+			w = len(r)
+		}
+	}
+	if w == 0 {
+		w = 1
+	}
+	return w
+}
+
+func Btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }

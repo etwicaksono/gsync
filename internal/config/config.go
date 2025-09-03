@@ -3,9 +3,10 @@ package config
 import "time"
 
 type Config struct {
-	CliApp CliApp
-	Db     DbConfig
-	Gsheet GsheetConfig
+	CliApp              CliApp
+	Db                  DbConfig
+	GsheetDataTransaksi GsheetDataTransaksi
+	GsheetRekapKeuangan GsheetRekapKeuangan
 }
 
 type App struct {
@@ -19,7 +20,7 @@ type CliApp struct {
 	CliTimeout time.Duration
 }
 
-type GsheetConfig struct {
+type GsheetDataTransaksi struct {
 	Id               string
 	CredentialPath   string
 	TransactionRange string
@@ -28,6 +29,12 @@ type GsheetConfig struct {
 	DebtRange        string
 	AccountRange     string
 	CategoryRange    string
+}
+
+type GsheetRekapKeuangan struct {
+	Id                  string
+	CredentialPath      string
+	ResumeStartColRange string
 }
 
 type DbConfig struct {
@@ -39,5 +46,5 @@ type DbConfig struct {
 	MaxOpenConnections    int
 	MaxIdleConnections    int
 	MaxConnectionLifetime time.Duration
-	MaxConnectionIdletime time.Duration
+	MaxConnectionIdleTime time.Duration
 }

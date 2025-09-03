@@ -1,4 +1,4 @@
-package credit_app
+package finance_app
 
 import (
 	"context"
@@ -20,10 +20,10 @@ func (a adapter) PullCredit(ctx context.Context, truncateFirst bool) (err error)
 	defer cancel()
 
 	// Sheets service
-	srv := util.MustSheetsService(ctx, a.cfg.Gsheet.CredentialPath)
+	srv := util.MustSheetsService(ctx, a.cfg.GsheetDataTransaksi.CredentialPath)
 
 	// Read with positions (FIXED for ranges like Y5:AL20 and quoted sheet names)
-	srcGrid, err := util.ReadSheetWithPos(ctx, srv, a.cfg.Gsheet.Id, a.cfg.Gsheet.CreditRange, 4)
+	srcGrid, err := util.ReadSheetWithPos(ctx, srv, a.cfg.GsheetDataTransaksi.Id, a.cfg.GsheetDataTransaksi.CreditRange, 4)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to read sheet", slog.String(constants.Error, err.Error()))
 		return err
@@ -32,7 +32,7 @@ func (a adapter) PullCredit(ctx context.Context, truncateFirst bool) (err error)
 	for _, row := range srcGrid {
 		totalCells += len(row)
 	}
-	slog.InfoContext(ctx, fmt.Sprintf("Read %d row(s), %d cell(s) from %s %q", len(srcGrid), totalCells, a.cfg.Gsheet.Id, a.cfg.Gsheet.TransactionRange))
+	slog.InfoContext(ctx, fmt.Sprintf("Read %d row(s), %d cell(s) from %s %q", len(srcGrid), totalCells, a.cfg.GsheetDataTransaksi.Id, a.cfg.GsheetDataTransaksi.TransactionRange))
 
 	authData, err := util.GetAuthData(ctx)
 	if err != nil {
