@@ -10,8 +10,8 @@ require (
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/sync v0.10.0
 	google.golang.org/api v0.215.0
-	gorm.io/datatypes v1.2.6
 	gorm.io/driver/mysql v1.6.0
+	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.30.1
 )
 
@@ -32,6 +32,10 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
+	github.com/jackc/pgx/v5 v5.5.5 // indirect
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect

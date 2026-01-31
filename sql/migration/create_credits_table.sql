@@ -1,11 +1,11 @@
-CREATE TABLE `credits` (
-    `id` BIGINT PRIMARY KEY,
-    `account` VARCHAR(64) NOT NULL,
-    `name` VARCHAR(64) NOT NULL,
-    `amount` DOUBLE NOT NULL,
-    `position` JSON DEFAULT NULL,
-    `created_at` DATETIME NOT NULL,
-    `created_by` VARCHAR(64) DEFAULT NULL,
-    `updated_at` DATETIME DEFAULT NULL,
-    `updated_by` VARCHAR(64) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE credits (
+    id BIGINT PRIMARY KEY,
+    account VARCHAR(64) NOT NULL,
+    name VARCHAR(64) NOT NULL,
+    amount DOUBLE PRECISION NOT NULL,
+    position JSONB DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL,
+    created_by VARCHAR(64) DEFAULT NULL,
+    updated_at TIMESTAMP DEFAULT NULL,
+    updated_by VARCHAR(64) DEFAULT NULL
+);

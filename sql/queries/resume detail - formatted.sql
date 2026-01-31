@@ -1,36 +1,37 @@
--- set your range: @from inclusive, @to exclusive (months before @to)
-SET @from := DATE('2022-12-01');
-SET @to   := DATE('2026-12-31');   -- up to 2025-08
-
--- avoid truncation in GROUP_CONCAT
-SET SESSION group_concat_max_len = 1000000;
+-- PostgreSQL version
+-- set your range: from_date inclusive, to_date exclusive (months before to_date)
 
 WITH RECURSIVE months(m) AS (
-    SELECT @from
+    SELECT '2022-12-01'::DATE
     UNION ALL
-    SELECT DATE_ADD(m, INTERVAL 1 MONTH)
+    SELECT m + INTERVAL '1 month'
     FROM months
-    WHERE m < DATE_SUB(@to, INTERVAL 1 MONTH)
+    WHERE m < '2026-12-31'::DATE - INTERVAL '1 month'
+),
+cat_month AS (
+    SELECT
+        t.category AS category,
+        TO_CHAR(t.date, 'YYYY-MM') AS ym,
+        SUM(t.amount) AS amt
+    FROM transactions t
+    WHERE t.date >= '2022-12-01'::DATE AND t.date < '2026-12-31'::DATE
+    GROUP BY t.category, ym
 )
-SELECT GROUP_CONCAT(
-               CONCAT(
-                       'rp_fmt(SUM(CASE WHEN t.date >= ''', DATE_FORMAT(m, '%Y-%m-01'),
-                       ''' AND t.date < ''', DATE_FORMAT(DATE_ADD(m, INTERVAL 1 MONTH), '%Y-%m-01'),
-                       ''' THEN t.amount END)) AS `', DATE_FORMAT(m, '%Y %M'), '`'
-               )
-                   ORDER BY m
-  SEPARATOR ', '
-       ) INTO @cols
-FROM months;
-
-SET @sql = CONCAT(
-  'SELECT c.id, c.code, ', @cols, '
-   FROM categories c
-   LEFT JOIN transactions t ON t.category = c.code
-   GROUP BY c.id, c.code
-   ORDER BY c.id;'
-);
-
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+SELECT
+    c.id,
+    c.code,
+    (
+        SELECT JSONB_AGG(
+            JSONB_BUILD_OBJECT(
+                'ym',  TO_CHAR(mon2.m, 'YYYY-MM'),
+                'amt', COALESCE(cm2.amt, 0)
+            ) ORDER BY mon2.m
+        )
+        FROM months mon2
+        LEFT JOIN cat_month cm2
+          ON cm2.category = c.code
+         AND cm2.ym = TO_CHAR(mon2.m, 'YYYY-MM')
+    ) AS monthly
+FROM categories c
+GROUP BY c.id, c.code
+ORDER BY c.id;
