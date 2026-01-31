@@ -56,6 +56,7 @@ func LoadConfig() Config {
 			CliTimeout: coalesce(vpr.GetDuration("APP_CLI_TIMEOUT"), 1*time.Minute),
 		},
 		Db: DbConfig{
+			Protocol:              coalesce(vpr.GetString("DB_PROTOCOL"), "postgresql"),
 			Address:               coalesce(vpr.GetString("DB_ADDRESS"), "localhost:5432"),
 			Name:                  coalesce(vpr.GetString("DB_NAME"), "example"),
 			Username:              coalesce(vpr.GetString("DB_USERNAME"), "admin"),

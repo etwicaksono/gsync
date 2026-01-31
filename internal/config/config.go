@@ -39,6 +39,7 @@ type GsheetRekapKeuangan struct {
 
 type DbConfig struct {
 	Address               string
+	Protocol              string
 	Name                  string
 	Username              string
 	Password              string

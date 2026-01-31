@@ -11,6 +11,7 @@ import (
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
 	"github.com/etwicaksono/data-transaksi-service/internal/constants"
 	errorsConst "github.com/etwicaksono/data-transaksi-service/internal/errors"
+	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -31,25 +32,43 @@ func NewGormDb(
 ) *AdapterGorm {
 	var dialector gorm.Dialector
 
-	// Parse host and port from Address (format: "host:port" or just "host")
-	host := config.Db.Address
-	port := "5432" // default PostgreSQL port
-	if idx := strings.LastIndex(config.Db.Address, ":"); idx != -1 {
-		host = config.Db.Address[:idx]
-		port = config.Db.Address[idx+1:]
-	}
+	switch strings.ToLower(config.Db.Protocol) {
+	case "mysql":
+		// MySQL DSN format: user:password@tcp(host:port)/dbname?options
+		dialector = mysql.Open(
+			fmt.Sprintf(
+				"%s:%s@tcp(%s)/%s%s",
+				config.Db.Username,
+				config.Db.Password,
+				config.Db.Address,
+				config.Db.Name,
+				config.Db.Option,
+			),
+		)
+	case "postgresql", "postgres":
+		// Parse host and port from Address (format: "host:port" or just "host")
+		host := config.Db.Address
+		port := "5432" // default PostgreSQL port
+		if idx := strings.LastIndex(config.Db.Address, ":"); idx != -1 {
+			host = config.Db.Address[:idx]
+			port = config.Db.Address[idx+1:]
+		}
 
-	dialector = postgres.Open(
-		fmt.Sprintf(
-			"host=%s port=%s user=%s password=%s dbname=%s %s",
-			host,
-			port,
-			config.Db.Username,
-			config.Db.Password,
-			config.Db.Name,
-			config.Db.Option,
-		),
-	)
+		dialector = postgres.Open(
+			fmt.Sprintf(
+				"host=%s port=%s user=%s password=%s dbname=%s %s",
+				host,
+				port,
+				config.Db.Username,
+				config.Db.Password,
+				config.Db.Name,
+				config.Db.Option,
+			),
+		)
+	default:
+		slog.ErrorContext(ctx, "Unsupported database protocol", slog.String("protocol", config.Db.Protocol))
+		panic(fmt.Sprintf("unsupported database protocol: %s (supported: mysql, postgresql)", config.Db.Protocol))
+	}
 
 	return &AdapterGorm{
 		ctx:       ctx,
