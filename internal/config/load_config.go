@@ -13,6 +13,7 @@ import (
 var configInstance *Config
 
 func LoadConfig() Config {
+	// TODO: change to envconfig
 	vpr := viper.New()
 	vpr.AutomaticEnv() // real env vars override values from file
 
