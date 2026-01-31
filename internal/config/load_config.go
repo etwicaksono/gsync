@@ -56,11 +56,11 @@ func LoadConfig() Config {
 			CliTimeout: coalesce(vpr.GetDuration("APP_CLI_TIMEOUT"), 1*time.Minute),
 		},
 		Db: DbConfig{
-			Address:               coalesce(vpr.GetString("DB_ADDRESS"), "localhost:27017"),
+			Address:               coalesce(vpr.GetString("DB_ADDRESS"), "localhost:5432"),
 			Name:                  coalesce(vpr.GetString("DB_NAME"), "example"),
 			Username:              coalesce(vpr.GetString("DB_USERNAME"), "admin"),
 			Password:              coalesce(vpr.GetString("DB_PASSWORD"), "admin_password"),
-			Option:                coalesce(vpr.GetString("DB_OPTION"), "?authSource=admin&readPreference=secondaryPreferred"),
+			Option:                coalesce(vpr.GetString("DB_OPTION"), "sslmode=disable"),
 			MaxOpenConnections:    coalesce(vpr.GetInt("DB_MAX_OPEN_CONNECTIONS"), 10),
 			MaxIdleConnections:    coalesce(vpr.GetInt("DB_MAX_IDLE_CONNECTIONS"), 2),
 			MaxConnectionLifetime: coalesce(vpr.GetDuration("DB_MAX_CONNECTION_LIFETIME"), 60*time.Second),

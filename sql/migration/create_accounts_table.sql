@@ -1,4 +1,3 @@
-CREATE TABLE `accounts` (
 CREATE TABLE accounts (
     id BIGINT PRIMARY KEY,
     code VARCHAR(64) NOT NULL,

@@ -1,4 +1,3 @@
-CREATE TABLE `debts` (
 CREATE TABLE debts (
     id BIGINT PRIMARY KEY,
     account VARCHAR(64) NOT NULL,

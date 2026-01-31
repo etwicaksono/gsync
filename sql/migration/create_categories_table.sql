@@ -1,4 +1,3 @@
-CREATE TABLE `categories` (
 CREATE TABLE categories (
     id BIGINT PRIMARY KEY,
     parent VARCHAR(64) NOT NULL,

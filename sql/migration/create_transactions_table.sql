@@ -1,4 +1,3 @@
-CREATE TABLE `transactions` (
 CREATE TABLE transactions (
     id BIGINT NOT NULL,
     date TIMESTAMP NOT NULL,

@@ -1,4 +1,3 @@
-CREATE TABLE `transfers` (
 CREATE TABLE transfers (
     id BIGINT PRIMARY KEY,
     date TIMESTAMP NOT NULL,

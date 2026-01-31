@@ -1,4 +1,3 @@
-CREATE TABLE `credits` (
 CREATE TABLE credits (
     id BIGINT PRIMARY KEY,
     account VARCHAR(64) NOT NULL,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
@@ -30,10 +31,19 @@ func NewGormDb(
 ) *AdapterGorm {
 	var dialector gorm.Dialector
 
+	// Parse host and port from Address (format: "host:port" or just "host")
+	host := config.Db.Address
+	port := "5432" // default PostgreSQL port
+	if idx := strings.LastIndex(config.Db.Address, ":"); idx != -1 {
+		host = config.Db.Address[:idx]
+		port = config.Db.Address[idx+1:]
+	}
+
 	dialector = postgres.Open(
 		fmt.Sprintf(
-			"host=%s user=%s password=%s dbname=%s %s",
-			config.Db.Address,
+			"host=%s port=%s user=%s password=%s dbname=%s %s",
+			host,
+			port,
 			config.Db.Username,
 			config.Db.Password,
 			config.Db.Name,
