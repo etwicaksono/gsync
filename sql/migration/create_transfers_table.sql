@@ -1,13 +1,14 @@
 CREATE TABLE `transfers` (
-    `id` BIGINT PRIMARY KEY,
-    `date` DATETIME NOT NULL,
-    `from_account` VARCHAR(64) NOT NULL,
-    `to_account` VARCHAR(64) NOT NULL,
-    `amount` DOUBLE NOT NULL,
-    `note` TEXT NOT NULL,
-    `position` JSON DEFAULT NULL,
-    `created_at` DATETIME NOT NULL,
-    `created_by` VARCHAR(64) DEFAULT NULL,
-    `updated_at` DATETIME DEFAULT NULL,
-    `updated_by` VARCHAR(64) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE transfers (
+    id BIGINT PRIMARY KEY,
+    date TIMESTAMP NOT NULL,
+    from_account VARCHAR(64) NOT NULL,
+    to_account VARCHAR(64) NOT NULL,
+    amount DOUBLE PRECISION NOT NULL,
+    note TEXT NOT NULL,
+    position JSONB DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL,
+    created_by VARCHAR(64) DEFAULT NULL,
+    updated_at TIMESTAMP DEFAULT NULL,
+    updated_by VARCHAR(64) DEFAULT NULL
+);

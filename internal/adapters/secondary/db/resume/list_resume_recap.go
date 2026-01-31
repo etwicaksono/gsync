@@ -15,11 +15,11 @@ import (
 func (a adapter) ListResumeRecap(ctx context.Context, tx *gorm.DB, filter entity.VResumeDetailListFilter) (result []entity.Resume, err error) {
 	var resumeSQL = fmt.Sprintf(`
 			WITH RECURSIVE months(m) AS (
-			  SELECT DATE(?)
+			  SELECT ?::DATE
 			  UNION ALL
-			  SELECT DATE_ADD(m, INTERVAL 1 MONTH)
+			  SELECT m + INTERVAL '1 month'
 			  FROM months
-			  WHERE m < DATE_SUB(DATE(?), INTERVAL 1 MONTH)
+			  WHERE m < ?::DATE - INTERVAL '1 month'
 			),
 			
 			-- distinct parent groups (parent if exists, else the category itself)
@@ -35,33 +35,31 @@ func (a adapter) ListResumeRecap(ctx context.Context, tx *gorm.DB, filter entity
 			cat_month AS (
 			  SELECT
 				COALESCE(p.code, c.code)       AS gcode,
-				DATE_FORMAT(t.date, '%%Y-%%m')   AS ym,
+				TO_CHAR(t.date, 'YYYY-MM')   AS ym,
 				SUM(t.amount)                  AS amt
 			  FROM %s t
 			  JOIN %s c ON t.category = c.code
 			  LEFT JOIN %s p ON p.name = c.parent
-			  WHERE t.date >= DATE(?) AND t.date < DATE(?)
+			  WHERE t.date >= ?::DATE AND t.date < ?::DATE
 			  GROUP BY gcode, ym
 			)
 			
 			SELECT
 			  g.id,
 			  g.code AS code,
-			  CAST(CONCAT(
-					'[',
-					GROUP_CONCAT(
-					  JSON_OBJECT(
-						'ym',  DATE_FORMAT(mon.m, '%%Y-%%m'),
-						'amt', COALESCE(cm.amt, 0)
-					  ) ORDER BY mon.m SEPARATOR ','
-					),
-					']'
-				  ) AS JSON) AS monthly
+			  (
+				SELECT JSONB_AGG(
+					JSONB_BUILD_OBJECT(
+						'ym',  TO_CHAR(mon2.m, 'YYYY-MM'),
+						'amt', COALESCE(cm2.amt, 0)
+					) ORDER BY mon2.m
+				)
+				FROM months mon2
+				LEFT JOIN cat_month cm2
+				  ON cm2.gcode = g.code
+				 AND cm2.ym = TO_CHAR(mon2.m, 'YYYY-MM')
+			  ) AS monthly
 			FROM cat_groups g
-			CROSS JOIN months mon
-			LEFT JOIN cat_month cm
-			  ON cm.gcode = g.code
-			 AND cm.ym    = DATE_FORMAT(mon.m, '%%Y-%%m')
 			GROUP BY g.id, g.code
 			ORDER BY g.id;
 			`,

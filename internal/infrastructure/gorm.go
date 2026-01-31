@@ -10,7 +10,7 @@ import (
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
 	"github.com/etwicaksono/data-transaksi-service/internal/constants"
 	errorsConst "github.com/etwicaksono/data-transaksi-service/internal/errors"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -30,12 +30,12 @@ func NewGormDb(
 ) *AdapterGorm {
 	var dialector gorm.Dialector
 
-	dialector = mysql.Open(
+	dialector = postgres.Open(
 		fmt.Sprintf(
-			"%s:%s@tcp(%s)/%s%s",
+			"host=%s user=%s password=%s dbname=%s %s",
+			config.Db.Address,
 			config.Db.Username,
 			config.Db.Password,
-			config.Db.Address,
 			config.Db.Name,
 			config.Db.Option,
 		),
