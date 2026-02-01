@@ -83,7 +83,7 @@ func (a adapter) ListResumeRecap(ctx context.Context, tx *gorm.DB, filter entity
 			WITH RECURSIVE months(m) AS (
 			  SELECT ?::DATE
 			  UNION ALL
-			  SELECT m + INTERVAL '1 month'
+			  SELECT (m + INTERVAL '1 month')::DATE
 			  FROM months
 			  WHERE m < ?::DATE - INTERVAL '1 month'
 			),
