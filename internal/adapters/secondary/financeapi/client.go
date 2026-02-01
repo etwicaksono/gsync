@@ -20,6 +20,8 @@
  	authToken    string
  	accountMap   map[string]string // name -> id
  	categoryMap  map[string]string // name -> id
+	accountMapping  map[string]string // sheet name -> finance name
+	categoryMapping map[string]string // sheet name -> finance name
  }
  
  // NewClient creates a new Finance Manager API client
@@ -37,8 +39,10 @@
  			Timeout: 30 * time.Second,
  			Jar:     jar,
  		},
- 		accountMap:  make(map[string]string),
- 		categoryMap: make(map[string]string),
+		accountMap:      make(map[string]string),
+		categoryMap:     make(map[string]string),
+		accountMapping:  make(map[string]string),
+		categoryMapping: make(map[string]string),
  	}, nil
  }
  
@@ -80,8 +84,26 @@
  		return fmt.Errorf("decode login response: %w", err)
  	}
  
- 	if loginResp.Token != "" {
- 		c.authToken = loginResp.Token
+	// Try to get token from response body
+	if loginResp.Token != "" {
+		c.authToken = loginResp.Token
+	}
+
+	// Also check for token in response data
+	var dataResp struct {
+		Success bool `json:"success"`
+		Data    struct {
+			Token       string `json:"token"`
+			AccessToken string `json:"access_token"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(respBody, &dataResp); err == nil {
+		if dataResp.Data.Token != "" {
+			c.authToken = dataResp.Data.Token
+		}
+		if dataResp.Data.AccessToken != "" {
+			c.authToken = dataResp.Data.AccessToken
+		}
  	}
  
  	return nil

@@ -1,7 +1,5 @@
  package financeapi
  
- import "time"
- 
  // LoginRequest is the request body for authentication
  type LoginRequest struct {
 	EmailOrUsername string `json:"email_or_username"`
@@ -39,7 +37,7 @@
  	Amount        float64   `json:"amount"`
  	AccountID     string    `json:"account_id"`
  	CategoryID    string    `json:"category_id"`
- 	DateTime      time.Time `json:"date_time"`
+	Date          string    `json:"date"`
  	Type          string    `json:"type"` // "expense" or "income"
  	PaymentStatus string    `json:"payment_status,omitempty"`
  	Description   string    `json:"description,omitempty"`
@@ -50,9 +48,13 @@
  
  // CreateTransactionResponse is the response from creating a transaction
  type CreateTransactionResponse struct {
- 	ID      string `json:"id,omitempty"`
- 	Message string `json:"message,omitempty"`
- 	Error   string `json:"error,omitempty"`
+	Success bool   `json:"success"`
+	ID      string `json:"id,omitempty"`
+	Message string `json:"message,omitempty"`
+	Data    struct {
+		ID string `json:"id,omitempty"`
+	} `json:"data,omitempty"`
+	Error interface{} `json:"error,omitempty"`
  }
  
  // CreateTransferRequest is the request to create a transfer
@@ -61,7 +63,7 @@
  	FromAccountID  string    `json:"from_account_id"`
  	ToAccountID    string    `json:"to_account_id"`
  	AmountReceived float64   `json:"amount_received,omitempty"`
- 	DateTime       time.Time `json:"date_time"`
+	Date           string    `json:"date"`
  	PaymentStatus  string    `json:"payment_status,omitempty"`
  	Description    string    `json:"description,omitempty"`
  	Labels         []string  `json:"labels,omitempty"`
@@ -70,7 +72,11 @@
  
  // CreateTransferResponse is the response from creating a transfer
  type CreateTransferResponse struct {
- 	ID      string `json:"id,omitempty"`
- 	Message string `json:"message,omitempty"`
- 	Error   string `json:"error,omitempty"`
+	Success bool   `json:"success"`
+	ID      string `json:"id,omitempty"`
+	Message string `json:"message,omitempty"`
+	Data    struct {
+		ID string `json:"id,omitempty"`
+	} `json:"data,omitempty"`
+	Error interface{} `json:"error,omitempty"`
  }

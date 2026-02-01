@@ -20,11 +20,15 @@
  	}
  
  	if status != http.StatusCreated && status != http.StatusOK {
- 		if resp.Error != "" {
- 			return nil, fmt.Errorf("create transfer failed: %s", resp.Error)
+		if resp.Error != nil {
+			return nil, fmt.Errorf("create transfer failed: %v", resp.Error)
  		}
  		return nil, fmt.Errorf("create transfer failed with status %d: %s", status, string(body))
  	}
  
+	if !resp.Success && resp.Error != nil {
+		return nil, fmt.Errorf("create transfer failed: %v", resp.Error)
+	}
+
  	return &resp, nil
  }
