@@ -4,8 +4,8 @@
  
  // LoginRequest is the request body for authentication
  type LoginRequest struct {
- 	Email    string `json:"email"`
- 	Password string `json:"password"`
+	EmailOrUsername string `json:"email_or_username"`
+	Password        string `json:"password"`
  }
  
  // LoginResponse is the response from authentication

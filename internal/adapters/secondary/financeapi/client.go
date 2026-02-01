@@ -45,8 +45,8 @@
  // Login authenticates with the Finance Manager API
  func (c *Client) Login(ctx context.Context) error {
  	payload := LoginRequest{
- 		Email:    c.email,
- 		Password: c.password,
+		EmailOrUsername: c.email,
+		Password:        c.password,
  	}
  
  	body, err := json.Marshal(payload)
