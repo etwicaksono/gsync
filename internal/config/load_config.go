@@ -83,6 +83,14 @@ func LoadConfig() Config {
 			CredentialPath:      vpr.GetString("GSHEET_CREDENTIAL_PATH"),
 			ResumeStartColRange: coalesce(vpr.GetString("GSHEET_REKAP_KEUANGAN_RESUME_START_COL_RANGE"), "Resume!B3"),
 		},
+		AppsScript: AppsScriptConfig{
+			URL: vpr.GetString("APPS_SCRIPT_URL"),
+		},
+		FinanceApi: FinanceApiConfig{
+			URL:      coalesce(vpr.GetString("FINANCE_API_URL"), "http://localhost:3000"),
+			Email:    vpr.GetString("FINANCE_API_EMAIL"),
+			Password: vpr.GetString("FINANCE_API_PASSWORD"),
+		},
 	}
 
 	return *configInstance
