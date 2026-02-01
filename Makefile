@@ -80,3 +80,16 @@ run-finance-sync-2025:
 	go run ./cmd/cli/main.go finance pull all
 	go run ./cmd/cli/main.go finance push resume-detail -c "2025!B88" -s "2025-01-01" -e "2025-12-31"
 	go run ./cmd/cli/main.go finance push resume-recap -c "2025!B50" -s "2025-01-01" -e "2025-12-31"
+
+# API Push commands (push data from Google Sheet to Finance Manager API)
+SKIP ?= 0
+LIMIT ?= 0
+
+run-finance-api-push:
+	go run ./cmd/cli/main.go finance api-push
+
+run-finance-api-push-transaction:
+	go run ./cmd/cli/main.go finance api-push transaction -s $(SKIP) -l $(LIMIT)
+
+run-finance-api-push-transfer:
+	go run ./cmd/cli/main.go finance api-push transfer -s $(SKIP) -l $(LIMIT)
