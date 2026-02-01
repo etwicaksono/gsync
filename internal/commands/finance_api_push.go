@@ -3,7 +3,6 @@
  import (
  	"context"
  	"fmt"
- 	"os"
  	"strconv"
  	"strings"
  	"time"
@@ -111,32 +110,26 @@ var financeApiPushDebugCmd = &cobra.Command{
  	}
  
  	// Process each transaction
- 	var successCount, failCount int
+	var successCount int
  	for i, tx := range resp.Data {
  		fmt.Printf("[%d/%d] Processing transaction #%s...\n", i+1, len(resp.Data), tx.No)
  
  		// Map account name to ID
 		accountID, ok := financeClient.GetAccountIDWithMapping(tx.Account)
  		if !ok {
-			fmt.Fprintf(os.Stderr, "  ERROR: Account not found: %q (available: %v)\n", tx.Account, financeClient.GetAccountNames())
- 			failCount++
- 			continue
+			return fmt.Errorf("account not found: %q (available: %v)", tx.Account, financeClient.GetAccountNames())
  		}
  
  		// Map category name to ID
 		categoryID, ok := financeClient.GetCategoryIDWithMapping(tx.Category)
  		if !ok {
-			fmt.Fprintf(os.Stderr, "  ERROR: Category not found: %q (available: %v)\n", tx.Category, financeClient.GetCategoryNames())
- 			failCount++
- 			continue
+			return fmt.Errorf("category not found: %q (available: %v)", tx.Category, financeClient.GetCategoryNames())
  		}
  
  		// Parse amount
  		amount, err := strconv.ParseFloat(tx.Amount, 64)
  		if err != nil {
- 			fmt.Fprintf(os.Stderr, "  ERROR: Invalid amount: %s\n", tx.Amount)
- 			failCount++
- 			continue
+			return fmt.Errorf("invalid amount %q: %w", tx.Amount, err)
  		}
 
 		// Make amount positive (API expects positive amounts, type indicates expense/income)
@@ -144,17 +137,13 @@ var financeApiPushDebugCmd = &cobra.Command{
 			amount = -amount
 		}
 		if amount == 0 {
-			fmt.Fprintf(os.Stderr, "  ERROR: Amount cannot be 0\n")
-			failCount++
-			continue
+			return fmt.Errorf("amount cannot be 0 for transaction #%s", tx.No)
 		}
  
  		// Parse date (DD/MM/YYYY to time.Time)
  		dateTime, err := parseSheetDate(tx.Date)
  		if err != nil {
- 			fmt.Fprintf(os.Stderr, "  ERROR: Invalid date: %s\n", tx.Date)
- 			failCount++
- 			continue
+			return fmt.Errorf("invalid date %q: %w", tx.Date, err)
  		}
  
  		// Create transaction
@@ -169,9 +158,7 @@ var financeApiPushDebugCmd = &cobra.Command{
  		}
  
  		if _, err := financeClient.CreateTransaction(ctx, req); err != nil {
- 			fmt.Fprintf(os.Stderr, "  ERROR: %v\n", err)
- 			failCount++
- 			continue
+			return fmt.Errorf("create transaction #%s failed: %w", tx.No, err)
  		}
  
  		// Update status in Google Sheet
@@ -181,14 +168,14 @@ var financeApiPushDebugCmd = &cobra.Command{
  			Type:   "transaction",
  		}
  		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
- 			fmt.Fprintf(os.Stderr, "  WARNING: Failed to update status: %v\n", err)
+			return fmt.Errorf("update status for transaction #%s failed: %w", tx.No, err)
  		}
  
  		fmt.Printf("  SUCCESS: Created transaction\n")
  		successCount++
  	}
  
- 	fmt.Printf("\nSummary: %d success, %d failed\n", successCount, failCount)
+	fmt.Printf("\nSummary: %d success\n", successCount)
  	return nil
  }
  
@@ -239,32 +226,26 @@ var financeApiPushDebugCmd = &cobra.Command{
  	}
  
  	// Process each transfer
- 	var successCount, failCount int
+	var successCount int
  	for i, tf := range resp.Data {
  		fmt.Printf("[%d/%d] Processing transfer #%s...\n", i+1, len(resp.Data), tf.No)
  
  		// Map from account name to ID
 		fromAccountID, ok := financeClient.GetAccountIDWithMapping(tf.FromAccount)
  		if !ok {
- 			fmt.Fprintf(os.Stderr, "  ERROR: From account not found: %s\n", tf.FromAccount)
- 			failCount++
- 			continue
+			return fmt.Errorf("from account not found: %q (available: %v)", tf.FromAccount, financeClient.GetAccountNames())
  		}
  
  		// Map to account name to ID
 		toAccountID, ok := financeClient.GetAccountIDWithMapping(tf.ToAccount)
  		if !ok {
- 			fmt.Fprintf(os.Stderr, "  ERROR: To account not found: %s\n", tf.ToAccount)
- 			failCount++
- 			continue
+			return fmt.Errorf("to account not found: %q (available: %v)", tf.ToAccount, financeClient.GetAccountNames())
  		}
  
  		// Parse amount
  		amount, err := strconv.ParseFloat(tf.Amount, 64)
  		if err != nil {
- 			fmt.Fprintf(os.Stderr, "  ERROR: Invalid amount: %s\n", tf.Amount)
- 			failCount++
- 			continue
+			return fmt.Errorf("invalid amount %q: %w", tf.Amount, err)
  		}
 
 		// Make amount positive
@@ -272,17 +253,13 @@ var financeApiPushDebugCmd = &cobra.Command{
 			amount = -amount
 		}
 		if amount == 0 {
-			fmt.Fprintf(os.Stderr, "  ERROR: Amount cannot be 0\n")
-			failCount++
-			continue
+			return fmt.Errorf("amount cannot be 0 for transfer #%s", tf.No)
 		}
  
  		// Parse date (DD/MM/YYYY to time.Time)
  		dateTime, err := parseSheetDate(tf.Date)
  		if err != nil {
- 			fmt.Fprintf(os.Stderr, "  ERROR: Invalid date: %s\n", tf.Date)
- 			failCount++
- 			continue
+			return fmt.Errorf("invalid date %q: %w", tf.Date, err)
  		}
  
  		// Create transfer
@@ -296,9 +273,7 @@ var financeApiPushDebugCmd = &cobra.Command{
  		}
  
  		if _, err := financeClient.CreateTransfer(ctx, req); err != nil {
- 			fmt.Fprintf(os.Stderr, "  ERROR: %v\n", err)
- 			failCount++
- 			continue
+			return fmt.Errorf("create transfer #%s failed: %w", tf.No, err)
  		}
  
  		// Update status in Google Sheet
@@ -308,14 +283,14 @@ var financeApiPushDebugCmd = &cobra.Command{
  			Type:   "transfer",
  		}
  		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
- 			fmt.Fprintf(os.Stderr, "  WARNING: Failed to update status: %v\n", err)
+			return fmt.Errorf("update status for transfer #%s failed: %w", tf.No, err)
  		}
  
  		fmt.Printf("  SUCCESS: Created transfer\n")
  		successCount++
  	}
  
- 	fmt.Printf("\nSummary: %d success, %d failed\n", successCount, failCount)
+	fmt.Printf("\nSummary: %d success\n", successCount)
  	return nil
  }
  
