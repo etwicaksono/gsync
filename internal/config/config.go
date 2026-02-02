@@ -7,6 +7,8 @@ type Config struct {
 	Db                  DbConfig
 	GsheetDataTransaksi GsheetDataTransaksi
 	GsheetRekapKeuangan GsheetRekapKeuangan
+	AppsScript          AppsScriptConfig
+	FinanceApi          FinanceApiConfig
 }
 
 type App struct {
@@ -35,6 +37,16 @@ type GsheetRekapKeuangan struct {
 	Id                  string
 	CredentialPath      string
 	ResumeStartColRange string
+}
+
+type AppsScriptConfig struct {
+	URL string
+}
+
+type FinanceApiConfig struct {
+	URL      string
+	Email    string
+	Password string
 }
 
 type DbConfig struct {

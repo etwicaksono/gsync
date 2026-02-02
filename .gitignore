@@ -2,3 +2,10 @@ vendor
 *.exe
 .env
 .idea
+
+# Reference folder (original scripts before reorganization)
+reference/
+
+# Node.js
+node_modules/
+scripts/budgetbakers/.budgetbakers-session
