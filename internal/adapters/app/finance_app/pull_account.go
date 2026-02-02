@@ -51,8 +51,8 @@ func (a adapter) PullAccount(ctx context.Context, truncateFirst bool) (err error
 			usabilityParsed := row[1]
 			codeParsed := row[2]
 			nameParsed := row[3]
-			ownershipParsed := row[10]
-			activeParsed := row[11]
+			ownershipParsed := row[11]
+			activeParsed := row[12]
 
 			id, _ := strconv.ParseInt(strings.TrimSpace(idParsed.Val), 10, 64)
 
