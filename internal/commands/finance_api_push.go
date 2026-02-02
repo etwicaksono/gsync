@@ -93,10 +93,6 @@ var financeApiPushDebugCmd = &cobra.Command{
 	fmt.Printf("Master data loaded: %d accounts, %d categories\n", len(accounts), len(categories))
  
 	// Apply default mappings
-	financeClient.SetAccountMapping(financeapi.DefaultAccountMapping)
-	financeClient.SetCategoryMapping(financeapi.DefaultCategoryMapping)
-
- 	// Fetch transactions from Google Sheet
  	fmt.Printf("Fetching transactions (skip=%d, limit=%d)...\n", apiPushSkip, apiPushLimit)
  	resp, err := appsClient.FetchTransactions(ctx, apiPushSkip, apiPushLimit)
  	if err != nil {
@@ -210,9 +206,6 @@ var financeApiPushDebugCmd = &cobra.Command{
  	fmt.Println("Master data loaded")
  
 	// Apply default mappings
-	financeClient.SetAccountMapping(financeapi.DefaultAccountMapping)
-
- 	// Fetch transfers from Google Sheet
  	fmt.Printf("Fetching transfers (skip=%d, limit=%d)...\n", apiPushSkip, apiPushLimit)
  	resp, err := appsClient.FetchTransfers(ctx, apiPushSkip, apiPushLimit)
  	if err != nil {
