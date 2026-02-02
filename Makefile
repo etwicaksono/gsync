@@ -93,3 +93,37 @@ run-finance-api-push-transaction:
 
 run-finance-api-push-transfer:
 	go run ./cmd/cli/main.go finance api-push transfer -s $(SKIP) -l $(LIMIT)
+# ============================================
+
+# ============================================
+# ============================================
+# These commands run the BudgetBakers browser automation scripts
+# Located in: scripts/budgetbakers/
+#
+# First time setup:
+#   make bb-setup
+#
+# Usage:
+#   make bb-transaction-auto SKIP=0 LIMIT=10
+#   make bb-transfer-auto SKIP=0 LIMIT=5
+# ============================================
+
+BUDGETBAKERS_DIR = scripts/budgetbakers
+
+bb-setup:
+	cd $(BUDGETBAKERS_DIR) && npm install && npm run setup
+
+bb-transaction-auto:
+	cd $(BUDGETBAKERS_DIR) && node budgetbakers-transaction.js --skip $(SKIP) --limit $(LIMIT) --mode auto
+
+bb-transaction-assist:
+	cd $(BUDGETBAKERS_DIR) && node budgetbakers-transaction.js --skip $(SKIP) --limit $(LIMIT) --mode assist
+
+bb-transfer-auto:
+	cd $(BUDGETBAKERS_DIR) && node budgetbakers-transfer.js --skip $(SKIP) --limit $(LIMIT) --mode auto
+
+bb-transfer-assist:
+	cd $(BUDGETBAKERS_DIR) && node budgetbakers-transfer.js --skip $(SKIP) --limit $(LIMIT) --mode assist
+
+bb-clean:
+	cd $(BUDGETBAKERS_DIR) && del /f /q .budgetbakers-session 2>nul || true
