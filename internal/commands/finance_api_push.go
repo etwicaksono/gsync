@@ -257,11 +257,12 @@ func runApiPushTransfer(ctx context.Context) error {
 		}
 
 		// Create transfer
+		now := time.Now()
 		req := financeapi.CreateTransferRequest{
 			Amount:        amount,
 			FromAccountID: fromAccountID,
 			ToAccountID:   toAccountID,
-			Date:          dateTime.Format(time.RFC3339),
+			Date:          time.Date(dateTime.Year(), dateTime.Month(), dateTime.Day(), now.Hour(), now.Minute(), now.Second(), 0, time.Local).UTC().Format(time.RFC3339),
 			PaymentStatus: "Cleared",
 			Description:   tf.Note,
 		}
