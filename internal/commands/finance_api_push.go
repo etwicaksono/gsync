@@ -161,7 +161,7 @@ func runApiPushTransaction(ctx context.Context) error {
 		// Update status in Google Sheet
 		statusReq := appsscript.UpdateStatusRequest{
 			No:     tx.No,
-			Status: "INSERTED",
+			Status: newFinanceInsertedMessage,
 			Type:   "transaction",
 		}
 		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
@@ -274,7 +274,7 @@ func runApiPushTransfer(ctx context.Context) error {
 		// Update status in Google Sheet
 		statusReq := appsscript.UpdateStatusRequest{
 			No:     tf.No,
-			Status: "INSERTED",
+			Status: newFinanceInsertedMessage,
 			Type:   "transfer",
 		}
 		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
