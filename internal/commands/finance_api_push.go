@@ -163,6 +163,7 @@ func runApiPushTransaction(ctx context.Context) error {
 			No:     tx.No,
 			Status: newFinanceInsertedMessage,
 			Type:   "transaction",
+			Target: financeAppType,
 		}
 		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
 			return fmt.Errorf("update status for transaction #%s failed: %w", tx.No, err)
@@ -276,6 +277,7 @@ func runApiPushTransfer(ctx context.Context) error {
 			No:     tf.No,
 			Status: newFinanceInsertedMessage,
 			Type:   "transfer",
+			Target: financeAppType,
 		}
 		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
 			return fmt.Errorf("update status for transfer #%s failed: %w", tf.No, err)

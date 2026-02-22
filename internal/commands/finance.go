@@ -15,4 +15,5 @@ func init() {
 var (
 	newFinanceInsertedMessage   = "INSERTED TO NEW FINANCE APP"
 	budgetBakersInsertedMessage = "INSERTED TO BUDGETBAKERS"
+	financeAppType              = "financeapp"
 )
