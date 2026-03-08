@@ -23,7 +23,7 @@ func (a adapter) PullAccount(ctx context.Context, truncateFirst bool) (err error
 	srv := util.MustSheetsService(ctx, a.cfg.GsheetDataTransaksi.CredentialPath)
 
 	// Read with positions (FIXED for ranges like Y5:AL20 and quoted sheet names)
-	srcGrid, err := util.ReadSheetWithPos(ctx, srv, a.cfg.GsheetDataTransaksi.Id, a.cfg.GsheetDataTransaksi.AccountRange, 12)
+	srcGrid, err := util.ReadSheetWithPos(ctx, srv, a.cfg.GsheetDataTransaksi.Id, a.cfg.GsheetDataTransaksi.AccountRange, 13)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to read sheet", slog.String(constants.Error, err.Error()))
 		return err
