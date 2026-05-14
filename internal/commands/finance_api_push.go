@@ -105,10 +105,10 @@ func runApiPushTransaction(ctx context.Context) error {
 		return nil
 	}
 
-	// Process each transaction
-	var successCount int
+	// Phase 1 — create all transactions in Finance Manager.
+	var createdNos []string
 	for i, tx := range resp.Data {
-		fmt.Printf("[%d/%d] Processing transaction #%s...\n", i+1, len(resp.Data), tx.No)
+		fmt.Printf("[%d/%d] Creating transaction #%s...\n", i+1, len(resp.Data), tx.No)
 
 		// Map account name to ID
 		accountID, ok := financeClient.GetAccountIDWithMapping(tx.Account)
@@ -144,7 +144,7 @@ func runApiPushTransaction(ctx context.Context) error {
 
 		// Create transaction
 		now := time.Now()
-		req := financeapi.CreateTransactionRequest{
+		createReq := financeapi.CreateTransactionRequest{
 			Amount:        amount,
 			AccountID:     accountID,
 			CategoryID:    categoryID,
@@ -154,27 +154,47 @@ func runApiPushTransaction(ctx context.Context) error {
 			Description:   tx.Note,
 		}
 
-		if _, err := financeClient.CreateTransaction(ctx, req); err != nil {
+		if _, err := financeClient.CreateTransaction(ctx, createReq); err != nil {
 			return fmt.Errorf("create transaction #%s failed: %w", tx.No, err)
 		}
 
-		// Update status in Google Sheet
+		fmt.Printf("  created\n")
+		createdNos = append(createdNos, tx.No)
+	}
+
+	// Phase 2 — update Google Sheet status for every successfully created transaction.
+	fmt.Printf("\nUpdating Google Sheet status for %d transaction(s)...\n", len(createdNos))
+	var statusFailedNos []string
+	for i, no := range createdNos {
+		fmt.Printf("[%d/%d] Updating status for transaction #%s...\n", i+1, len(createdNos), no)
 		statusReq := appsscript.UpdateStatusRequest{
-			No:     tx.No,
+			No:     no,
 			Status: newFinanceInsertedMessage,
 			Type:   "transaction",
 			Target: financeAppType,
 		}
 		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
-			return fmt.Errorf("update status for transaction #%s failed: %w", tx.No, err)
+			fmt.Printf("  FAILED: %v\n", err)
+			statusFailedNos = append(statusFailedNos, no)
+			continue
 		}
-
-		fmt.Printf("  SUCCESS: Created transaction\n")
-		successCount++
+		fmt.Printf("  updated\n")
 	}
 
-	fmt.Printf("\nSummary: %d success\n", successCount)
-	return nil
+	fmt.Printf("\nSummary: %d created", len(createdNos))
+	if len(statusFailedNos) == 0 {
+		fmt.Printf(", %d status updated\n", len(createdNos))
+		return nil
+	}
+
+	fmt.Printf(", %d status update(s) FAILED\n", len(statusFailedNos))
+	fmt.Printf("The following transactions were created in Finance Manager but their Google Sheet\n")
+	fmt.Printf("status could NOT be updated. Re-run with these numbers or update them manually:\n")
+	for _, no := range statusFailedNos {
+		fmt.Printf("  - #%s\n", no)
+	}
+	return fmt.Errorf("%d transaction(s) created but status update failed: %s",
+		len(statusFailedNos), strings.Join(statusFailedNos, ", "))
 }
 
 func runApiPushTransfer(ctx context.Context) error {
@@ -220,10 +240,10 @@ func runApiPushTransfer(ctx context.Context) error {
 		return nil
 	}
 
-	// Process each transfer
-	var successCount int
+	// Phase 1 — create all transfers in Finance Manager.
+	var createdNos []string
 	for i, tf := range resp.Data {
-		fmt.Printf("[%d/%d] Processing transfer #%s...\n", i+1, len(resp.Data), tf.No)
+		fmt.Printf("[%d/%d] Creating transfer #%s...\n", i+1, len(resp.Data), tf.No)
 
 		// Map from account name to ID
 		fromAccountID, ok := financeClient.GetAccountIDWithMapping(tf.FromAccount)
@@ -259,7 +279,7 @@ func runApiPushTransfer(ctx context.Context) error {
 
 		// Create transfer
 		now := time.Now()
-		req := financeapi.CreateTransferRequest{
+		createReq := financeapi.CreateTransferRequest{
 			Amount:        amount,
 			FromAccountID: fromAccountID,
 			ToAccountID:   toAccountID,
@@ -268,27 +288,47 @@ func runApiPushTransfer(ctx context.Context) error {
 			Description:   tf.Note,
 		}
 
-		if _, err := financeClient.CreateTransfer(ctx, req); err != nil {
+		if _, err := financeClient.CreateTransfer(ctx, createReq); err != nil {
 			return fmt.Errorf("create transfer #%s failed: %w", tf.No, err)
 		}
 
-		// Update status in Google Sheet
+		fmt.Printf("  created\n")
+		createdNos = append(createdNos, tf.No)
+	}
+
+	// Phase 2 — update Google Sheet status for every successfully created transfer.
+	fmt.Printf("\nUpdating Google Sheet status for %d transfer(s)...\n", len(createdNos))
+	var statusFailedNos []string
+	for i, no := range createdNos {
+		fmt.Printf("[%d/%d] Updating status for transfer #%s...\n", i+1, len(createdNos), no)
 		statusReq := appsscript.UpdateStatusRequest{
-			No:     tf.No,
+			No:     no,
 			Status: newFinanceInsertedMessage,
 			Type:   "transfer",
 			Target: financeAppType,
 		}
 		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
-			return fmt.Errorf("update status for transfer #%s failed: %w", tf.No, err)
+			fmt.Printf("  FAILED: %v\n", err)
+			statusFailedNos = append(statusFailedNos, no)
+			continue
 		}
-
-		fmt.Printf("  SUCCESS: Created transfer\n")
-		successCount++
+		fmt.Printf("  updated\n")
 	}
 
-	fmt.Printf("\nSummary: %d success\n", successCount)
-	return nil
+	fmt.Printf("\nSummary: %d created", len(createdNos))
+	if len(statusFailedNos) == 0 {
+		fmt.Printf(", %d status updated\n", len(createdNos))
+		return nil
+	}
+
+	fmt.Printf(", %d status update(s) FAILED\n", len(statusFailedNos))
+	fmt.Printf("The following transfers were created in Finance Manager but their Google Sheet\n")
+	fmt.Printf("status could NOT be updated. Re-run with these numbers or update them manually:\n")
+	for _, no := range statusFailedNos {
+		fmt.Printf("  - #%s\n", no)
+	}
+	return fmt.Errorf("%d transfer(s) created but status update failed: %s",
+		len(statusFailedNos), strings.Join(statusFailedNos, ", "))
 }
 
 // parseSheetDate parses a date string in DD/MM/YYYY format
