@@ -11,3 +11,9 @@ var financeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(financeCmd)
 }
+
+var (
+	newFinanceInsertedMessage   = "INSERTED TO NEW FINANCE APP"
+	budgetBakersInsertedMessage = "INSERTED TO BUDGETBAKERS"
+	financeAppType              = "financeapp"
+)
