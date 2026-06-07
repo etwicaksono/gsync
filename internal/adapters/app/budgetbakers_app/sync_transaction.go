@@ -136,7 +136,7 @@ func (a *adapter) SyncTransactions(ctx context.Context, skip int, limit int) err
 					statusRequests = append(statusRequests, appsscript.UpdateStatusRequest{
 						No:     tx.No,
 						Status: constants.SheetStatusBudgetBakersInserted,
-						Type:   constants.SyncTypeTransactionTitle,
+						Type:   constants.SyncTypeTransactionLower,
 						Target: constants.SyncTargetBudgetBakers,
 					})
 				} else {
@@ -145,8 +145,23 @@ func (a *adapter) SyncTransactions(ctx context.Context, skip int, limit int) err
 			}
 
 			if len(statusRequests) > 0 {
-				if _, err := a.appsClient.UpdateStatusBatch(ctx, statusRequests); err != nil {
+				res, err := a.appsClient.UpdateStatusBatch(ctx, statusRequests)
+				if err != nil {
 					fmt.Printf("  Failed to update sheet statuses: %v\n", err)
+				} else {
+					// Check for inner errors
+					failedCount := 0
+					for _, r := range res.Results {
+						if !r.Success {
+							failedCount++
+							fmt.Printf("    ✗ Status update failed for #%s: %s\n", r.No, r.Error)
+						}
+					}
+					if failedCount == 0 {
+						fmt.Printf("  %d status updated successfully\n", len(statusRequests))
+					} else {
+						fmt.Printf("  %d status updated successfully, %d failed\n", len(statusRequests)-failedCount, failedCount)
+					}
 				}
 			}
 		} else {
