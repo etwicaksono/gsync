@@ -80,10 +80,10 @@ Synchronize core financial records between your local database and Google Sheets
 Push transactions directly to BudgetBakers.
 ```bash
 # Push transactions
-./gsync budgetbakers transaction
+./gsync budgetbakers push transaction
 
 # Push transfers
-./gsync budgetbakers transfer
+./gsync budgetbakers push transfer
 
 # Debug accounts and category mappings
 ./gsync budgetbakers debug
@@ -93,8 +93,8 @@ Push transactions directly to BudgetBakers.
 ### 👛 3. BudgetMate Integration
 Push transactions to your custom BudgetMate API.
 ```bash
-./gsync budgetmate transaction
-./gsync budgetmate transfer
+./gsync budgetmate push transaction
+./gsync budgetmate push transfer
 ```
 
 ---

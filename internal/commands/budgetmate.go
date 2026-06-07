@@ -12,10 +12,15 @@ import (
 var apiPushSkip, apiPushLimit int
 
 var budgetmateCmd = &cobra.Command{
-	Use:     "budgetmate",
-	Short:   "Push data from Google Sheet to BudgetMate API",
-	Long:    `Push data from Google Sheet to BudgetMate API via REST endpoints`,
-	Aliases: []string{"api-push"},
+	Use:   "budgetmate",
+	Short: "Push data from Google Sheet to BudgetMate API",
+	Long:  `BudgetMate API commands to manage syncing your data.`,
+}
+
+var bmPushCmd = &cobra.Command{
+	Use:   "push",
+	Short: "Push records to BudgetMate",
+	Long:  `Push records (transactions, transfers) from Google Sheet to BudgetMate API`,
 }
 
 var bmTransactionCmd = &cobra.Command{
@@ -122,8 +127,9 @@ var bmDebugCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(budgetmateCmd)
-	budgetmateCmd.AddCommand(bmTransactionCmd)
-	budgetmateCmd.AddCommand(bmTransferCmd)
+	budgetmateCmd.AddCommand(bmPushCmd)
+	bmPushCmd.AddCommand(bmTransactionCmd)
+	bmPushCmd.AddCommand(bmTransferCmd)
 	budgetmateCmd.AddCommand(bmDebugCmd)
 
 	for _, cmd := range []*cobra.Command{bmTransactionCmd, bmTransferCmd} {

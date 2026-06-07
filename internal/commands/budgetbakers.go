@@ -25,6 +25,12 @@ var budgetbakersCmd = &cobra.Command{
 	Aliases: []string{"bb"},
 }
 
+var bbPushCmd = &cobra.Command{
+	Use:   "push",
+	Short: "Push records to BudgetBakers",
+	Long:  `Push records (transactions, transfers) from Google Sheet to BudgetBakers API`,
+}
+
 var bbTransactionCmd = &cobra.Command{
 	Use:   "transaction",
 	Short: "Run transaction synchronization",
@@ -47,8 +53,9 @@ var bbTransferCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(budgetbakersCmd)
-	budgetbakersCmd.AddCommand(bbTransactionCmd)
-	budgetbakersCmd.AddCommand(bbTransferCmd)
+	budgetbakersCmd.AddCommand(bbPushCmd)
+	bbPushCmd.AddCommand(bbTransactionCmd)
+	bbPushCmd.AddCommand(bbTransferCmd)
 
 	for _, cmd := range []*cobra.Command{bbTransactionCmd, bbTransferCmd} {
 		cmd.Flags().IntVarP(&bbSkip, "skip", "s", 0, "Number of records to skip")
