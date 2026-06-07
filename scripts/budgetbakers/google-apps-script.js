@@ -218,51 +218,81 @@ function formatDate(dateValue) {
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
-    const no = String(data.no);
-    const status = data.status || 'INSERTED';
-    const type = data.type || 'transaction'; // 'transaction' or 'transfer'
+    const isBatch = Array.isArray(data);
+    const updates = isBatch ? data : [data];
     
-    if (!no) {
-      throw new Error('Missing "no" field');
+    if (updates.length === 0) {
+      throw new Error('No data provided');
     }
+
+    const results = [];
     
-    const sheetName = type === 'transfer' ? 'Transfer' : 'Transaction';
-    const statusColumn = type === 'transfer' ? 8 : 9; // Column H for Transfer, Column I for Transaction
+    // Group sheets logic to avoid redundant SpreadsheetApp calls
+    const sheetsData = {
+      'transaction': { sheetName: 'Transaction', statusColumn: 9, noColumn: null, lastRow: null, sheet: null },
+      'transfer': { sheetName: 'Transfer', statusColumn: 8, noColumn: null, lastRow: null, sheet: null }
+    };
     
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-    if (!sheet) {
-      throw new Error(`Sheet "${sheetName}" not found`);
-    }
+    const getSheetData = (type) => {
+      const typeKey = type || 'transaction';
+      const sData = sheetsData[typeKey];
+      
+      if (!sData) {
+         throw new Error(`Unsupported type: ${typeKey}`);
+      }
+      
+      if (!sData.sheet) {
+         sData.sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sData.sheetName);
+         if (!sData.sheet) {
+           throw new Error(`Sheet "${sData.sheetName}" not found`);
+         }
+         sData.lastRow = sData.sheet.getLastRow();
+         if (sData.lastRow >= 5) {
+           sData.noColumn = sData.sheet.getRange(5, 2, sData.lastRow - 4, 1).getValues();
+         } else {
+           sData.noColumn = [];
+         }
+      }
+      return sData;
+    };
     
-    const lastRow = sheet.getLastRow();
-    if (lastRow < 5) {
-      throw new Error('No data in sheet');
-    }
-    
-    // Read column B (No) to find the matching row
-    const noColumn = sheet.getRange(5, 2, lastRow - 4, 1).getValues(); // B5:B{lastRow}
-    
-    let targetRow = -1;
-    for (let i = 0; i < noColumn.length; i++) {
-      if (String(noColumn[i][0]) === no) {
-        targetRow = i + 5; // +5 because data starts at row 5
-        break;
+    for (const update of updates) {
+      const no = String(update.no);
+      const status = update.status || 'INSERTED';
+      const type = update.type || 'transaction';
+      
+      if (!no) {
+        results.push({ success: false, error: 'Missing "no" field' });
+        continue;
+      }
+      
+      try {
+        const sData = getSheetData(type);
+        
+        let targetRow = -1;
+        for (let i = 0; i < sData.noColumn.length; i++) {
+          if (String(sData.noColumn[i][0]) === no) {
+            targetRow = i + 5;
+            break;
+          }
+        }
+        
+        if (targetRow === -1) {
+          throw new Error(`Row with No "${no}" not found`);
+        }
+        
+        sData.sheet.getRange(targetRow, sData.statusColumn).setValue(status);
+        results.push({ success: true, no: no, targetRow: targetRow, type: type });
+      } catch (err) {
+        results.push({ success: false, no: no, error: err.message, type: type });
       }
     }
-    
-    if (targetRow === -1) {
-      throw new Error(`Row with No "${no}" not found`);
-    }
-    
-    // Update status column
-    sheet.getRange(targetRow, statusColumn).setValue(status);
     
     return ContentService
       .createTextOutput(JSON.stringify({ 
         success: true, 
-        message: `Updated row ${targetRow} with status "${status}"`,
-        no: no,
-        type: type
+        message: isBatch ? `Processed ${updates.length} updates` : `Updated row ${results[0]?.targetRow} with status "${updates[0]?.status}"`,
+        results: results
       }))
       .setMimeType(ContentService.MimeType.JSON);
       

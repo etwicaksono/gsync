@@ -57,3 +57,20 @@ type UpdateStatusResponse struct {
 	No      string `json:"no,omitempty"`
 	Type    string `json:"type,omitempty"`
 }
+
+// UpdateStatusBatchResult is a single result inside a batch response
+type UpdateStatusBatchResult struct {
+	Success   bool   `json:"success"`
+	No        string `json:"no,omitempty"`
+	TargetRow int    `json:"targetRow,omitempty"`
+	Type      string `json:"type,omitempty"`
+	Error     string `json:"error,omitempty"`
+}
+
+// UpdateStatusBatchResponse is the response from a batch status update
+type UpdateStatusBatchResponse struct {
+	Success bool                      `json:"success"`
+	Message string                    `json:"message,omitempty"`
+	Results []UpdateStatusBatchResult `json:"results,omitempty"`
+	Error   string                    `json:"error,omitempty"`
+}

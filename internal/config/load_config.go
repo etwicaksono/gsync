@@ -91,6 +91,9 @@ func LoadConfig() Config {
 			Email:    vpr.GetString("FINANCE_API_EMAIL"),
 			Password: vpr.GetString("FINANCE_API_PASSWORD"),
 		},
+		BudgetBakers: BudgetBakersConfig{
+			APIToken: vpr.GetString("BUDGETBAKERS_API_TOKEN"),
+		},
 	}
 
 	return *configInstance

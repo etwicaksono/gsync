@@ -9,6 +9,11 @@ type Config struct {
 	GsheetRekapKeuangan GsheetRekapKeuangan
 	AppsScript          AppsScriptConfig
 	FinanceApi          FinanceApiConfig
+	BudgetBakers        BudgetBakersConfig
+}
+
+type BudgetBakersConfig struct {
+	APIToken string
 }
 
 type App struct {

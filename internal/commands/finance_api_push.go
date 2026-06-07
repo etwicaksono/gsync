@@ -165,20 +165,23 @@ func runApiPushTransaction(ctx context.Context) error {
 	// Phase 2 — update Google Sheet status for every successfully created transaction.
 	fmt.Printf("\nUpdating Google Sheet status for %d transaction(s)...\n", len(createdNos))
 	var statusFailedNos []string
-	for i, no := range createdNos {
-		fmt.Printf("[%d/%d] Updating status for transaction #%s...\n", i+1, len(createdNos), no)
-		statusReq := appsscript.UpdateStatusRequest{
+	var statusRequests []appsscript.UpdateStatusRequest
+	for _, no := range createdNos {
+		statusRequests = append(statusRequests, appsscript.UpdateStatusRequest{
 			No:     no,
 			Status: newFinanceInsertedMessage,
-			Type:   "transaction",
+			Type:   transactionType,
 			Target: financeAppType,
+		})
+	}
+	
+	if len(statusRequests) > 0 {
+		if _, err := appsClient.UpdateStatusBatch(ctx, statusRequests); err != nil {
+			fmt.Printf("  BATCH UPDATE FAILED: %v\n", err)
+			statusFailedNos = createdNos // all failed
+		} else {
+			fmt.Printf("  %d status updated successfully\n", len(createdNos))
 		}
-		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
-			fmt.Printf("  FAILED: %v\n", err)
-			statusFailedNos = append(statusFailedNos, no)
-			continue
-		}
-		fmt.Printf("  updated\n")
 	}
 
 	fmt.Printf("\nSummary: %d created", len(createdNos))
@@ -299,20 +302,23 @@ func runApiPushTransfer(ctx context.Context) error {
 	// Phase 2 — update Google Sheet status for every successfully created transfer.
 	fmt.Printf("\nUpdating Google Sheet status for %d transfer(s)...\n", len(createdNos))
 	var statusFailedNos []string
-	for i, no := range createdNos {
-		fmt.Printf("[%d/%d] Updating status for transfer #%s...\n", i+1, len(createdNos), no)
-		statusReq := appsscript.UpdateStatusRequest{
+	var statusRequests []appsscript.UpdateStatusRequest
+	for _, no := range createdNos {
+		statusRequests = append(statusRequests, appsscript.UpdateStatusRequest{
 			No:     no,
 			Status: newFinanceInsertedMessage,
-			Type:   "transfer",
+			Type:   transferType,
 			Target: financeAppType,
+		})
+	}
+	
+	if len(statusRequests) > 0 {
+		if _, err := appsClient.UpdateStatusBatch(ctx, statusRequests); err != nil {
+			fmt.Printf("  BATCH UPDATE FAILED: %v\n", err)
+			statusFailedNos = createdNos // all failed
+		} else {
+			fmt.Printf("  %d status updated successfully\n", len(createdNos))
 		}
-		if _, err := appsClient.UpdateStatus(ctx, statusReq); err != nil {
-			fmt.Printf("  FAILED: %v\n", err)
-			statusFailedNos = append(statusFailedNos, no)
-			continue
-		}
-		fmt.Printf("  updated\n")
 	}
 
 	fmt.Printf("\nSummary: %d created", len(createdNos))

@@ -12,8 +12,11 @@ func init() {
 	rootCmd.AddCommand(financeCmd)
 }
 
-var (
+const (
 	newFinanceInsertedMessage   = "INSERTED TO NEW FINANCE APP"
 	budgetBakersInsertedMessage = "INSERTED TO BUDGETBAKERS"
 	financeAppType              = "financeapp"
+	budgetBakersAppType         = "budgetbakers"
+	transactionType             = "transaction"
+	transferType             = "transfer"
 )
