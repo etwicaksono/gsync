@@ -86,10 +86,10 @@ func LoadConfig() Config {
 		AppsScript: AppsScriptConfig{
 			URL: vpr.GetString("APPS_SCRIPT_URL"),
 		},
-		FinanceApi: FinanceApiConfig{
-			URL:      coalesce(vpr.GetString("FINANCE_API_URL"), "http://localhost:3000"),
-			Email:    vpr.GetString("FINANCE_API_EMAIL"),
-			Password: vpr.GetString("FINANCE_API_PASSWORD"),
+		BudgetMateApi: BudgetMateApiConfig{
+			URL:      coalesce(vpr.GetString("BUDGETMATE_API_URL"), "http://localhost:3000"),
+			Email:    vpr.GetString("BUDGETMATE_API_EMAIL"),
+			Password: vpr.GetString("BUDGETMATE_API_PASSWORD"),
 		},
 		BudgetBakers: BudgetBakersConfig{
 			APIToken: vpr.GetString("BUDGETBAKERS_API_TOKEN"),

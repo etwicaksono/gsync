@@ -229,8 +229,8 @@ function doPost(e) {
     
     // Group sheets logic to avoid redundant SpreadsheetApp calls
     const sheetsData = {
-      'transaction': { sheetName: 'Transaction', statusColumn: 9, noColumn: null, lastRow: null, sheet: null },
-      'transfer': { sheetName: 'Transfer', statusColumn: 8, noColumn: null, lastRow: null, sheet: null }
+      'transaction': { sheetName: 'Transaction', statusColumns: { 'budgetbakers': 9, 'budgetmate': 10 }, noColumn: null, lastRow: null, sheet: null },
+      'transfer': { sheetName: 'Transfer', statusColumns: { 'budgetbakers': 8, 'budgetmate': 9 }, noColumn: null, lastRow: null, sheet: null }
     };
     
     const getSheetData = (type) => {
@@ -260,6 +260,7 @@ function doPost(e) {
       const no = String(update.no);
       const status = update.status || 'INSERTED';
       const type = update.type || 'transaction';
+      const target = update.target || 'budgetbakers';
       
       if (!no) {
         results.push({ success: false, error: 'Missing "no" field' });
@@ -281,7 +282,8 @@ function doPost(e) {
           throw new Error(`Row with No "${no}" not found`);
         }
         
-        sData.sheet.getRange(targetRow, sData.statusColumn).setValue(status);
+        const statusColumn = sData.statusColumns[target] || sData.statusColumns['budgetbakers'];
+        sData.sheet.getRange(targetRow, statusColumn).setValue(status);
         results.push({ success: true, no: no, targetRow: targetRow, type: type });
       } catch (err) {
         results.push({ success: false, no: no, error: err.message, type: type });

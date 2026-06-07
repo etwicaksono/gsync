@@ -7,7 +7,7 @@
 package injector
 
 import (
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/finance_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/gsheet_finance_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/account_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/category_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/credit_db"
@@ -23,7 +23,7 @@ import (
 
 // Injectors from injector.go:
 
-func FinanceAppProvider(config2 config.Config, db *gorm.DB) app.FinanceAppInterface {
+func GsheetFinanceAppProvider(config2 config.Config, db *gorm.DB) app.GsheetFinanceAppInterface {
 	accountDbInterface := account_db.NewAccountDb(config2)
 	categoryDbInterface := category_db.NewCategoryDb(config2)
 	creditDbInterface := credit_db.NewCreditDb(config2)
@@ -31,10 +31,10 @@ func FinanceAppProvider(config2 config.Config, db *gorm.DB) app.FinanceAppInterf
 	transactionDbInterface := transaction_db.NewTransactionDb(config2)
 	transferDbInterface := transfer_db.NewTransferDb(config2)
 	vResumeDbInterface := resume.NewResumeDb(config2)
-	financeAppInterface := finance_app.NewFinanceApp(config2, db, accountDbInterface, categoryDbInterface, creditDbInterface, debtDbInterface, transactionDbInterface, transferDbInterface, vResumeDbInterface)
-	return financeAppInterface
+	GsheetFinanceAppInterface := gsheet_finance_app.NewFinanceApp(config2, db, accountDbInterface, categoryDbInterface, creditDbInterface, debtDbInterface, transactionDbInterface, transferDbInterface, vResumeDbInterface)
+	return GsheetFinanceAppInterface
 }
 
 // injector.go:
 
-var dbSet = wire.NewSet(transaction_db.NewTransactionDb, transfer_db.NewTransferDb, debt_db.NewDebtDb, credit_db.NewCreditDb, account_db.NewAccountDb, category_db.NewCategoryDb, finance_app.NewFinanceApp, resume.NewResumeDb)
+var dbSet = wire.NewSet(transaction_db.NewTransactionDb, transfer_db.NewTransferDb, debt_db.NewDebtDb, credit_db.NewCreditDb, account_db.NewAccountDb, category_db.NewCategoryDb, gsheet_finance_app.NewFinanceApp, resume.NewResumeDb)

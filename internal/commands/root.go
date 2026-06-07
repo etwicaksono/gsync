@@ -16,7 +16,7 @@ import (
 var (
 	version    = "dev"
 	cfg        config.Config
-	financeApp app.FinanceAppInterface
+	gsheetFinanceApp app.GsheetFinanceAppInterface
 )
 
 var rootCmd = &cobra.Command{
@@ -58,7 +58,7 @@ func Execute() {
 	defer gormAdapter.Disconnect()
 	dbClient := gormAdapter.GetClient()
 
-	financeApp = injector.FinanceAppProvider(cfg, dbClient)
+	gsheetFinanceApp = injector.GsheetFinanceAppProvider(cfg, dbClient)
 
 	if err = rootCmd.Execute(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)

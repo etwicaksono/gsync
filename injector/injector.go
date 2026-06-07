@@ -4,7 +4,7 @@
 package injector
 
 import (
-	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/finance_app"
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/app/gsheet_finance_app"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/account_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/category_db"
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/db/credit_db"
@@ -25,11 +25,11 @@ var dbSet = wire.NewSet(
 	credit_db.NewCreditDb,
 	account_db.NewAccountDb,
 	category_db.NewCategoryDb,
-	finance_app.NewFinanceApp,
+	gsheet_finance_app.NewFinanceApp,
 	resume.NewResumeDb,
 )
 
-func FinanceAppProvider(config config.Config, db *gorm.DB) app.FinanceAppInterface {
+func GsheetFinanceAppProvider(config config.Config, db *gorm.DB) app.GsheetFinanceAppInterface {
 	wire.Build(dbSet)
 	return nil
 }

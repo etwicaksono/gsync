@@ -8,7 +8,7 @@ type Config struct {
 	GsheetDataTransaksi GsheetDataTransaksi
 	GsheetRekapKeuangan GsheetRekapKeuangan
 	AppsScript          AppsScriptConfig
-	FinanceApi          FinanceApiConfig
+	BudgetMateApi       BudgetMateApiConfig
 	BudgetBakers        BudgetBakersConfig
 }
 
@@ -48,7 +48,7 @@ type AppsScriptConfig struct {
 	URL string
 }
 
-type FinanceApiConfig struct {
+type BudgetMateApiConfig struct {
 	URL      string
 	Email    string
 	Password string

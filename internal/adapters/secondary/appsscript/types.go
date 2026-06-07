@@ -46,7 +46,7 @@ type UpdateStatusRequest struct {
 	No     string `json:"no"`
 	Status string `json:"status"`
 	Type   string `json:"type"`   // "transaction" or "transfer"
-	Target string `json:"target"` // "budgetbakers" or "financeapp"
+	Target string `json:"target"` // "budgetbakers" or "budgetmate"
 }
 
 // UpdateStatusResponse is the response from status update
