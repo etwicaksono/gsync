@@ -21,6 +21,9 @@
 // Column F: Amount (number, positive value)
 // Column G: Note (text, description of transaction)
 // Column H: Type (text, "income" or "expense")
+// Column I: Label (optional, comma separated, e.g., "BUSINESS, ADJUSTMENT")
+// Column J: Status BudgetBakers (written back by doPost)
+// Column K: Status BudgetMate (written back by doPost)
 //
 // Data starts from row 5 (no header row)
 // Sheet name must be "transaction"
@@ -31,7 +34,7 @@
 //
 // POST {url}                   - Update status after insert
 //   Body: { "no": "123", "status": "INSERTED" }
-//   Updates column I for the row with matching No
+//   Updates column J (BudgetBakers) or K (BudgetMate) for the row with matching No
 //
 // Response format:
 //   {
@@ -81,10 +84,10 @@ function getTransactions(skip, limit) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
-  const data = sheet.getRange(5, 2, lastRow - 4, 7).getValues(); // B5:H
+  const data = sheet.getRange(5, 2, lastRow - 4, 8).getValues(); // B5:I
 
   // Build transactions array
-  // Columns: No(0), Date(1), Account(2), Category(3), Amount(4), Note(5), Type(6)
+  // Columns: No(0), Date(1), Account(2), Category(3), Amount(4), Note(5), Type(6), Label(7)
   const allTransactions = [];
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
@@ -99,7 +102,8 @@ function getTransactions(skip, limit) {
       category: stripSuffix(String(row[3] || '')),
       note: String(row[5] || ''),
       date: formatDate(row[1]),
-      type: String(row[6] || 'expense').toLowerCase()
+      type: String(row[6] || 'expense').toLowerCase(),
+      labels: parseLabels(row[7])
     };
 
     // Only add if has required fields
@@ -195,6 +199,18 @@ function stripSuffix(value) {
   return value.replace(/::\d+$/, '').trim();
 }
 
+// Split a comma separated label cell into an array of label names.
+// "BUSINESS, ADJUSTMENT" -> ["BUSINESS", "ADJUSTMENT"], empty cell -> []
+// Returning an array keeps the delimiter rule in one place so the Go client
+// never has to re-parse it.
+function parseLabels(value) {
+  if (!value) return [];
+  return String(value)
+    .split(',')
+    .map(function (label) { return label.trim(); })
+    .filter(function (label) { return label.length > 0; });
+}
+
 function formatDate(dateValue) {
   if (!dateValue) return '';
 
@@ -228,8 +244,9 @@ function doPost(e) {
     const results = [];
     
     // Group sheets logic to avoid redundant SpreadsheetApp calls
+    // Transaction status columns are shifted by one because column I now holds labels.
     const sheetsData = {
-      'transaction': { sheetName: 'Transaction', statusColumns: { 'budgetbakers': 9, 'budgetmate': 10 }, noColumn: null, lastRow: null, sheet: null },
+      'transaction': { sheetName: 'Transaction', statusColumns: { 'budgetbakers': 10, 'budgetmate': 11 }, noColumn: null, lastRow: null, sheet: null },
       'transfer': { sheetName: 'Transfer', statusColumns: { 'budgetbakers': 8, 'budgetmate': 9 }, noColumn: null, lastRow: null, sheet: null }
     };
     

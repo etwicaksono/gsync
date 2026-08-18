@@ -2,13 +2,14 @@ package appsscript
 
 // SheetTransaction represents a transaction from Google Sheet
 type SheetTransaction struct {
-	No       string `json:"no"`
-	Date     string `json:"date"` // DD/MM/YYYY
-	Account  string `json:"account"`
-	Category string `json:"category"`
-	Amount   string `json:"amount"`
-	Note     string `json:"note"`
-	Type     string `json:"type"` // "expense" or "income"
+	No       string   `json:"no"`
+	Date     string   `json:"date"` // DD/MM/YYYY
+	Account  string   `json:"account"`
+	Category string   `json:"category"`
+	Amount   string   `json:"amount"`
+	Note     string   `json:"note"`
+	Type     string   `json:"type"`   // "expense" or "income"
+	Labels   []string `json:"labels"` // label names from column I, already split by the Apps Script
 }
 
 // SheetTransfer represents a transfer from Google Sheet

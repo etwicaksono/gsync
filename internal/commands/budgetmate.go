@@ -10,6 +10,7 @@ import (
 )
 
 var apiPushSkip, apiPushLimit int
+var apiPushDebug bool
 
 var budgetmateCmd = &cobra.Command{
 	Use:   "budgetmate",
@@ -50,12 +51,16 @@ var bmTransactionCmd = &cobra.Command{
 		}
 		fmt.Println("Login successful")
 
-		fmt.Println("Fetching accounts and categories...")
+		fmt.Println("Fetching accounts, categories and labels...")
+		bmClient.SetDebug(apiPushDebug)
 		if _, err := bmClient.FetchAccounts(ctx); err != nil {
 			return fmt.Errorf("fetch accounts: %w", err)
 		}
 		if _, err := bmClient.FetchCategories(ctx); err != nil {
 			return fmt.Errorf("fetch categories: %w", err)
+		}
+		if _, err := bmClient.FetchLabels(ctx); err != nil {
+			return fmt.Errorf("fetch labels: %w", err)
 		}
 
 		app := budgetmate_app.NewBudgetMateApp(appsClient, bmClient)
@@ -125,15 +130,42 @@ var bmDebugCmd = &cobra.Command{
 	},
 }
 
+var bmDebugLabelsCmd = &cobra.Command{
+	Use:   "debug-labels",
+	Short: "Diagnose why transaction labels are not reaching BudgetMate",
+	Long:  `Compare labels coming from the Google Sheet against labels in BudgetMate and preview the outgoing payload`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if cfg.AppsScript.URL == "" {
+			return fmt.Errorf("APPS_SCRIPT_URL is not configured")
+		}
+
+		appsClient := appsscript.NewClient(cfg.AppsScript.URL)
+		var bmClient *budgetmateapi.Client
+
+		if cfg.BudgetMateApi.Email != "" && cfg.BudgetMateApi.Password != "" {
+			var err error
+			bmClient, err = budgetmateapi.NewClient(cfg.BudgetMateApi.URL, cfg.BudgetMateApi.Email, cfg.BudgetMateApi.Password)
+			if err != nil {
+				return fmt.Errorf("create budgetmate client: %w", err)
+			}
+		}
+
+		app := budgetmate_app.NewBudgetMateApp(appsClient, bmClient)
+		return app.DebugLabels(cmd.Context())
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(budgetmateCmd)
 	budgetmateCmd.AddCommand(bmPushCmd)
 	bmPushCmd.AddCommand(bmTransactionCmd)
 	bmPushCmd.AddCommand(bmTransferCmd)
 	budgetmateCmd.AddCommand(bmDebugCmd)
+	budgetmateCmd.AddCommand(bmDebugLabelsCmd)
 
 	for _, cmd := range []*cobra.Command{bmTransactionCmd, bmTransferCmd} {
 		cmd.Flags().IntVarP(&apiPushSkip, "skip", "s", 0, "Number of records to skip")
 		cmd.Flags().IntVarP(&apiPushLimit, "limit", "l", 0, "Number of records to process (0 = all)")
+		cmd.Flags().BoolVar(&apiPushDebug, "debug", false, "Log HTTP request and response bodies")
 	}
 }

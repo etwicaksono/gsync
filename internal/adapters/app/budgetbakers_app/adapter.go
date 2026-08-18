@@ -13,6 +13,7 @@ type adapter struct {
 	// In-memory cache for reference data
 	accounts   []budgetbakers.Account
 	categories []budgetbakers.Category
+	labels     []budgetbakers.Label
 }
 
 func NewBudgetBakersApp(appsClient *appsscript.Client, bbClient *budgetbakers.Client) port.BudgetBakersAppInterface {

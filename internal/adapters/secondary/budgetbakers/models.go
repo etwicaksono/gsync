@@ -26,6 +26,14 @@ type Category struct {
 	Name string `json:"name"`
 }
 
+// Label represents a BudgetBakers label
+type Label struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Color    string `json:"color,omitempty"`
+	Archived bool   `json:"archived,omitempty"`
+}
+
 // Record represents a BudgetBakers transaction record payload
 type Record struct {
 	AccountID   string             `json:"accountId"`
@@ -35,6 +43,7 @@ type Record struct {
 	RecordState string             `json:"recordState,omitempty"` // "cleared", "reconciled", "uncleared"
 	RecordDate  time.Time          `json:"recordDate"`
 	Note        string             `json:"note,omitempty"`
+	LabelIDs    []string           `json:"labelIds,omitempty"`
 }
 
 // BatchRecordResponse represents the 207 Multi-Status response from POST /records

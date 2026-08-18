@@ -20,9 +20,18 @@
  	authToken    string
  	accountMap   map[string]string // name -> id
  	categoryMap  map[string]string // name -> id
+	labelMap     map[string]string // name -> id
 	accountMapping  map[string]string // sheet name -> finance name
 	categoryMapping map[string]string // sheet name -> finance name
+	labelMapping    map[string]string // sheet name -> finance name
+	debug           bool              // when true, log request/response bodies
  }
+
+// SetDebug toggles verbose HTTP logging. Only bodies are logged, never headers,
+// so the bearer token is never printed.
+func (c *Client) SetDebug(enabled bool) {
+	c.debug = enabled
+}
  
  // NewClient creates a new Finance Manager API client
  func NewClient(baseURL, email, password string) (*Client, error) {
@@ -41,8 +50,10 @@
  		},
 		accountMap:      make(map[string]string),
 		categoryMap:     make(map[string]string),
+		labelMap:        make(map[string]string),
 		accountMapping:  make(map[string]string),
 		categoryMapping: make(map[string]string),
+		labelMapping:    make(map[string]string),
  	}, nil
  }
  
@@ -117,7 +128,12 @@
  		if err != nil {
  			return nil, 0, fmt.Errorf("encode request body: %w", err)
  		}
+		if c.debug {
+			fmt.Printf("  [http] %s %s\n       request: %s\n", method, path, string(jsonBody))
+		}
  		reqBody = bytes.NewReader(jsonBody)
+	} else if c.debug {
+		fmt.Printf("  [http] %s %s\n", method, path)
  	}
  
  	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, reqBody)
@@ -141,5 +157,18 @@
  		return nil, resp.StatusCode, fmt.Errorf("read response: %w", err)
  	}
  
+	if c.debug {
+		fmt.Printf("       status:  %d\n       response: %s\n", resp.StatusCode, truncateForLog(string(respBody)))
+	}
+
  	return respBody, resp.StatusCode, nil
  }
+
+// truncateForLog keeps debug output readable when an endpoint returns a large list.
+func truncateForLog(s string) string {
+	const max = 2000
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + fmt.Sprintf("... (%d bytes total)", len(s))
+}

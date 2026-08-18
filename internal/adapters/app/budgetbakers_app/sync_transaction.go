@@ -14,7 +14,7 @@ import (
 
 // SyncTransactions fetches transactions from Google Sheets and pushes them to BudgetBakers
 func (a *adapter) SyncTransactions(ctx context.Context, skip int, limit int) error {
-	fmt.Println("Loading reference data (Accounts & Categories) from BudgetBakers...")
+	fmt.Println("Loading reference data (Accounts, Categories & Labels) from BudgetBakers...")
 	var err error
 	a.accounts, err = a.bbClient.GetAccounts()
 	if err != nil {
@@ -25,7 +25,12 @@ func (a *adapter) SyncTransactions(ctx context.Context, skip int, limit int) err
 	if err != nil {
 		return fmt.Errorf("failed to load categories: %w", err)
 	}
-	fmt.Printf("Loaded %d accounts and %d categories.\n", len(a.accounts), len(a.categories))
+
+	a.labels, err = a.bbClient.GetLabels()
+	if err != nil {
+		return fmt.Errorf("failed to load labels: %w", err)
+	}
+	fmt.Printf("Loaded %d accounts, %d categories and %d labels.\n", len(a.accounts), len(a.categories), len(a.labels))
 
 	fmt.Printf("Fetching transactions from Google Sheets (skip=%d, limit=%d)...\n", skip, limit)
 	transactionsResp, err := a.appsClient.FetchTransactions(ctx, skip, limit)
@@ -80,6 +85,12 @@ func (a *adapter) SyncTransactions(ctx context.Context, skip int, limit int) err
 			continue
 		}
 
+		labelIDs, err := a.findLabelIDs(tx.Labels)
+		if err != nil {
+			fmt.Printf("Warning: skipping transaction #%s: %v\n", tx.No, err)
+			continue
+		}
+
 		// Parse date DD/MM/YYYY
 		t, err := time.Parse("02/01/2006", tx.Date)
 		if err != nil {
@@ -103,6 +114,7 @@ func (a *adapter) SyncTransactions(ctx context.Context, skip int, limit int) err
 			PaymentType: "cash",
 			RecordDate:  t,
 			Note:        note,
+			LabelIDs:    labelIDs,
 		}
 
 		records = append(records, record)
@@ -235,4 +247,56 @@ func (a *adapter) findCategoryID(name string) (string, error) {
 	}
 
 	return "", fmt.Errorf("category not found: %s", name)
+}
+
+// findLabelIDs maps sheet label names to BudgetBakers label IDs.
+// Unlike accounts and categories this is an exact (case-insensitive) match only:
+// labels are short words where a substring match would too easily pick the wrong
+// one. Resolution is all-or-nothing, so a record is never sent carrying only
+// part of its labels.
+func (a *adapter) findLabelIDs(names []string) ([]string, error) {
+	if len(names) == 0 {
+		return nil, nil
+	}
+
+	ids := make([]string, 0, len(names))
+	seen := make(map[string]struct{}, len(names))
+
+	for _, name := range names {
+		trimmed := strings.TrimSpace(name)
+		if trimmed == "" {
+			continue
+		}
+
+		var id string
+		for _, label := range a.labels {
+			if strings.EqualFold(strings.TrimSpace(label.Name), trimmed) {
+				id = label.ID
+				break
+			}
+		}
+
+		if id == "" {
+			return nil, fmt.Errorf("label not found: %s (available: %s)", trimmed, strings.Join(a.labelNames(), ", "))
+		}
+
+		if _, duplicate := seen[id]; duplicate {
+			continue
+		}
+		seen[id] = struct{}{}
+		ids = append(ids, id)
+	}
+
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	return ids, nil
+}
+
+func (a *adapter) labelNames() []string {
+	names := make([]string, 0, len(a.labels))
+	for _, label := range a.labels {
+		names = append(names, label.Name)
+	}
+	return names
 }

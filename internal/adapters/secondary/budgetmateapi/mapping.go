@@ -18,6 +18,14 @@ func (c *Client) SetCategoryMapping(mapping map[string]string) {
 	}
 }
 
+// SetLabelMapping sets the label mapping
+func (c *Client) SetLabelMapping(mapping map[string]string) {
+	c.labelMapping = make(map[string]string)
+	for k, v := range mapping {
+		c.labelMapping[k] = v
+	}
+}
+
 // GetAccountID returns the account ID for a given name (with mapping support)
 func (c *Client) GetAccountIDWithMapping(name string) (string, bool) {
 	lowerName := strings.ToLower(name)

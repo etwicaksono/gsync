@@ -43,6 +43,19 @@ type CategoriesResponse struct {
 	Success bool       `json:"success"`
 	Data    []Category `json:"data"`
 }
+
+// Label represents a label from Finance Manager
+type Label struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Color string `json:"color,omitempty"`
+}
+
+// LabelsResponse wraps the labels API response
+type LabelsResponse struct {
+	Success bool    `json:"success"`
+	Data    []Label `json:"data"`
+}
  
  // CreateTransactionRequest is the request to create a transaction
  type CreateTransactionRequest struct {
@@ -53,7 +66,7 @@ type CategoriesResponse struct {
  	Type          string    `json:"type"` // "expense" or "income"
  	PaymentStatus string    `json:"payment_status,omitempty"`
  	Description   string    `json:"description,omitempty"`
- 	Labels        []string  `json:"labels,omitempty"`
+	Labels        []string  `json:"label_ids,omitempty"`
  	Payee         string    `json:"payee,omitempty"`
  	PaymentMethod string    `json:"payment_method,omitempty"`
  }
@@ -65,6 +78,10 @@ type CategoriesResponse struct {
 	Message string `json:"message,omitempty"`
 	Data    struct {
 		ID string `json:"id,omitempty"`
+		// Labels echoes back what was actually stored. Comparing this against
+		// the request is the only way to catch a payload the API accepts but
+		// silently drops.
+		Labels []Label `json:"labels,omitempty"`
 	} `json:"data,omitempty"`
 	Error interface{} `json:"error,omitempty"`
  }
@@ -78,7 +95,9 @@ type CategoriesResponse struct {
 	Date           string    `json:"date"`
  	PaymentStatus  string    `json:"payment_status,omitempty"`
  	Description    string    `json:"description,omitempty"`
- 	Labels         []string  `json:"labels,omitempty"`
+	// CreateTransferRequest has no label field in the API schema, so this is
+	// accepted and then ignored. Kept only so existing callers still compile.
+	Labels         []string  `json:"label_ids,omitempty"`
  	PaymentMethod  string    `json:"payment_method,omitempty"`
  }
  

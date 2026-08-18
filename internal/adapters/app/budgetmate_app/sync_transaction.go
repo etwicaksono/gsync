@@ -28,6 +28,7 @@ func (a *adapter) SyncTransactions(ctx context.Context, skip, limit int) error {
 
 	// Phase 1 — create all transactions in Finance Manager.
 	var createdNos []string
+	var labelsDropped int
 	for i, tx := range resp.Data {
 		fmt.Printf("[%d/%d] Creating transaction #%s...\n", i+1, len(resp.Data), tx.No)
 
@@ -41,6 +42,12 @@ func (a *adapter) SyncTransactions(ctx context.Context, skip, limit int) error {
 		categoryID, ok := a.budgetmateClient.GetCategoryIDWithMapping(tx.Category)
 		if !ok {
 			return fmt.Errorf("category not found: %q (available: %v)", tx.Category, a.budgetmateClient.GetCategoryNames())
+		}
+
+		// Map label names to IDs
+		labelIDs, missingLabels := a.budgetmateClient.ResolveLabelIDs(tx.Labels)
+		if len(missingLabels) > 0 {
+			return fmt.Errorf("label not found for transaction #%s: %v (available: %v)", tx.No, missingLabels, a.budgetmateClient.GetLabelNames())
 		}
 
 		// Parse amount
@@ -73,10 +80,19 @@ func (a *adapter) SyncTransactions(ctx context.Context, skip, limit int) error {
 			Type:          strings.ToLower(tx.Type),
 			PaymentStatus: "Cleared",
 			Description:   tx.Note,
+			Labels:        labelIDs,
 		}
 
-		if _, err := a.budgetmateClient.CreateTransaction(ctx, createReq); err != nil {
+		createResp, err := a.budgetmateClient.CreateTransaction(ctx, createReq)
+		if err != nil {
 			return fmt.Errorf("create transaction #%s failed: %w", tx.No, err)
+		}
+
+		// The API returns 201 even when it ignores an unknown field, so the only
+		// way to know the labels landed is to compare what it echoes back.
+		if len(labelIDs) > 0 && createResp != nil && len(createResp.Data.Labels) == 0 {
+			fmt.Printf("  WARNING: sent %d label(s) but the response stored none\n", len(labelIDs))
+			labelsDropped++
 		}
 
 		fmt.Printf("  created\n")
@@ -106,6 +122,12 @@ func (a *adapter) SyncTransactions(ctx context.Context, skip, limit int) error {
 	}
 
 	fmt.Printf("\nSummary: %d created", len(createdNos))
+	if labelsDropped > 0 {
+		fmt.Printf("\nWARNING: %d transaction(s) were created but their labels were not stored.\n", labelsDropped)
+		fmt.Printf("The labels resolved and the request was accepted, so the field carrying them\n")
+		fmt.Printf("is being ignored. Re-run with --debug and check the request body against the\n")
+		fmt.Printf("API schema.\n")
+	}
 	if len(statusFailedNos) == 0 {
 		fmt.Printf(", %d status updated\n", len(createdNos))
 		return nil
