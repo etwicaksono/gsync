@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
+	"github.com/etwicaksono/data-transaksi-service/internal/adapters/secondary/model"
 	"github.com/etwicaksono/data-transaksi-service/internal/config"
 	"github.com/etwicaksono/data-transaksi-service/internal/constants"
 	errorsConst "github.com/etwicaksono/data-transaksi-service/internal/errors"
-	"gorm.io/driver/mysql"
-	"gorm.io/driver/postgres"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -30,52 +32,29 @@ func NewGormDb(
 	config config.Config,
 	logger *slog.Logger,
 ) *AdapterGorm {
-	var dialector gorm.Dialector
-
-	switch strings.ToLower(config.Db.Protocol) {
-	case "mysql":
-		// MySQL DSN format: user:password@tcp(host:port)/dbname?options
-		dialector = mysql.Open(
-			fmt.Sprintf(
-				"%s:%s@tcp(%s)/%s%s",
-				config.Db.Username,
-				config.Db.Password,
-				config.Db.Address,
-				config.Db.Name,
-				config.Db.Option,
-			),
-		)
-	case "postgresql", "postgres":
-		// Parse host and port from Address (format: "host:port" or just "host")
-		host := config.Db.Address
-		port := "5432" // default PostgreSQL port
-		if idx := strings.LastIndex(config.Db.Address, ":"); idx != -1 {
-			host = config.Db.Address[:idx]
-			port = config.Db.Address[idx+1:]
-		}
-
-		dialector = postgres.Open(
-			fmt.Sprintf(
-				"host=%s port=%s user=%s password=%s dbname=%s %s",
-				host,
-				port,
-				config.Db.Username,
-				config.Db.Password,
-				config.Db.Name,
-				config.Db.Option,
-			),
-		)
-	default:
-		slog.ErrorContext(ctx, "Unsupported database protocol", slog.String("protocol", config.Db.Protocol))
-		panic(fmt.Sprintf("unsupported database protocol: %s (supported: mysql, postgresql)", config.Db.Protocol))
-	}
-
 	return &AdapterGorm{
 		ctx:       ctx,
 		config:    config,
-		dialector: dialector,
+		dialector: sqlite.Open(buildSqliteDSN(config.Db.Path, config.Db.Option)),
 		logger:    logger,
 	}
+}
+
+// buildSqliteDSN appends the pragmas required for reliable concurrent access.
+// WAL lets readers run alongside a writer, and busy_timeout makes competing
+// writers wait for the lock instead of failing with "database is locked".
+func buildSqliteDSN(path, option string) string {
+	pragmas := []string{
+		"_pragma=journal_mode(WAL)",
+		"_pragma=busy_timeout(10000)",
+		"_pragma=foreign_keys(ON)",
+	}
+
+	if trimmed := strings.TrimLeft(strings.TrimSpace(option), "?&"); trimmed != "" {
+		pragmas = append(pragmas, trimmed)
+	}
+
+	return fmt.Sprintf("%s?%s", path, strings.Join(pragmas, "&"))
 }
 
 func (a *AdapterGorm) Connect() error {
@@ -95,6 +74,15 @@ func (a *AdapterGorm) Connect() error {
 		return errorsConst.ErrLogLevelInvalid
 	}
 
+	// The database is a plain file, so make sure its parent directory exists
+	// before the driver tries to create it.
+	if dir := filepath.Dir(a.config.Db.Path); dir != "" && dir != "." {
+		if err := os.MkdirAll(dir, 0o750); err != nil {
+			slog.ErrorContext(a.ctx, "Failed to create database directory", slog.String(constants.Error, err.Error()))
+			return err
+		}
+	}
+
 	gormLogger := &slogGormLogger{logger: a.logger, level: logLevel}
 
 	db, err := gorm.Open(a.dialector, &gorm.Config{
@@ -106,7 +94,7 @@ func (a *AdapterGorm) Connect() error {
 		return err
 	}
 
-	slog.InfoContext(a.ctx, "GormDB connected")
+	slog.InfoContext(a.ctx, "GormDB connected", slog.String("path", a.config.Db.Path))
 	a.client = db
 
 	sqlDB, err := db.DB()
@@ -121,13 +109,42 @@ func (a *AdapterGorm) Connect() error {
 	sqlDB.SetConnMaxLifetime(a.config.Db.MaxConnectionLifetime * time.Second)
 	sqlDB.SetConnMaxIdleTime(a.config.Db.MaxConnectionIdleTime * time.Second)
 
+	if err = a.migrate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// migrate creates the schema on first run so a fresh SQLite file is usable
+// without any manual setup step.
+func (a *AdapterGorm) migrate() error {
+	err := a.client.AutoMigrate(
+		&model.Account{},
+		&model.Category{},
+		&model.Credit{},
+		&model.Debt{},
+		&model.Transaction{},
+		&model.Transfer{},
+	)
+	if err != nil {
+		slog.ErrorContext(a.ctx, "Failed to migrate database schema", slog.String(constants.Error, err.Error()))
+		return err
+	}
+
+	slog.InfoContext(a.ctx, "Database schema is up to date")
 	return nil
 }
 
 func (a *AdapterGorm) Disconnect() {
+	if a.client == nil {
+		return
+	}
+
 	sqlDB, err := a.client.DB()
 	if err != nil {
 		slog.Error(fmt.Sprintf("Failed to get database object: %v", err))
+		return
 	}
 
 	if err = sqlDB.Close(); err != nil {

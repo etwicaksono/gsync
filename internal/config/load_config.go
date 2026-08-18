@@ -34,11 +34,14 @@ func LoadConfig() Config {
 
 	// Try to read the first existing .env with Viper
 	var readOK bool
+	var envDir string
 	for _, path := range candidates {
-		vpr.SetConfigFile(filepath.Clean(path))
+		cleaned := filepath.Clean(path)
+		vpr.SetConfigFile(cleaned)
 		vpr.SetConfigType("env") // tell Viper this is dotenv-style
 		if err := vpr.ReadInConfig(); err == nil {
 			readOK = true
+			envDir = filepath.Dir(cleaned)
 			break
 		}
 	}
@@ -57,12 +60,8 @@ func LoadConfig() Config {
 			CliTimeout: coalesce(vpr.GetDuration("APP_CLI_TIMEOUT"), 1*time.Minute),
 		},
 		Db: DbConfig{
-			Protocol:              coalesce(vpr.GetString("DB_PROTOCOL"), "postgresql"),
-			Address:               coalesce(vpr.GetString("DB_ADDRESS"), "localhost:5432"),
-			Name:                  coalesce(vpr.GetString("DB_NAME"), "example"),
-			Username:              coalesce(vpr.GetString("DB_USERNAME"), "admin"),
-			Password:              coalesce(vpr.GetString("DB_PASSWORD"), "admin_password"),
-			Option:                coalesce(vpr.GetString("DB_OPTION"), "sslmode=disable"),
+			Path:                  resolveDbPath(coalesce(vpr.GetString("DB_PATH"), "gsync.db"), envDir),
+			Option:                vpr.GetString("DB_OPTION"),
 			MaxOpenConnections:    coalesce(vpr.GetInt("DB_MAX_OPEN_CONNECTIONS"), 10),
 			MaxIdleConnections:    coalesce(vpr.GetInt("DB_MAX_IDLE_CONNECTIONS"), 2),
 			MaxConnectionLifetime: coalesce(vpr.GetDuration("DB_MAX_CONNECTION_LIFETIME"), 60*time.Second),
@@ -105,4 +104,26 @@ func coalesce[T comparable](first, second T) T {
 		return first
 	}
 	return second
+}
+
+// resolveDbPath turns a relative SQLite path into an absolute one so the CLI
+// always opens the same database file regardless of the working directory it is
+// invoked from. Relative paths are anchored to the directory holding the .env
+// file, falling back to the binary's directory.
+func resolveDbPath(path, envDir string) string {
+	if path == ":memory:" || filepath.IsAbs(path) {
+		return path
+	}
+
+	baseDir := envDir
+	if baseDir == "" || baseDir == "." {
+		if execPath, err := os.Executable(); err == nil {
+			baseDir = filepath.Dir(execPath)
+		}
+	}
+	if baseDir == "" {
+		return filepath.Clean(path)
+	}
+
+	return filepath.Join(baseDir, path)
 }

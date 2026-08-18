@@ -5,7 +5,7 @@ import (
 )
 
 type Credit struct {
-	ID       int64           `gorm:"column:id;int(64);primaryKey"`
+	ID       int64           `gorm:"column:id;type:bigint;primaryKey;autoIncrement:false"`
 	Account  string          `gorm:"column:account;type:varchar(64);not null"`
 	Name     string          `gorm:"column:name;type:varchar(64);not null"`
 	Amount   float64         `gorm:"column:amount;float(64);not null"`

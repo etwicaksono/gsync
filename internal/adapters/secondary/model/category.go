@@ -5,7 +5,7 @@ import (
 )
 
 type Category struct {
-	ID         int64             `gorm:"column:id;int(64);primaryKey"`
+	ID         int64             `gorm:"column:id;type:bigint;primaryKey;autoIncrement:false"`
 	Parent     string            `gorm:"column:parent;type:varchar(64);not null"`
 	Name       string            `gorm:"column:name;type:varchar(64);not null"`
 	Code       string            `gorm:"column:code;type:varchar(64);not null"`

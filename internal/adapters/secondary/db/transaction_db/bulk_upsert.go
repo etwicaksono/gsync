@@ -20,7 +20,7 @@ func (a adapter) BulkUpsert(ctx context.Context, tx *gorm.DB, request []entity.T
 	}
 
 	if truncateFirst {
-		err = tx.Exec(fmt.Sprintf("TRUNCATE TABLE %s", model.Transaction{}.TableName())).Error
+		err = tx.Exec(fmt.Sprintf("DELETE FROM %s", model.Transaction{}.TableName())).Error
 		if err != nil {
 			slog.ErrorContext(ctx, fmt.Sprintf("error on truncate %s", model.Transaction{}.TableName()), slog.String(constants.Error, err.Error()))
 			return

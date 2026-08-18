@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/etwicaksono/data-transaksi-service/internal/adapters/entity"
 )
@@ -33,6 +34,15 @@ type MonthlyPoint struct {
 }
 
 type MonthlyList []MonthlyPoint
+
+// SortByYM orders the points chronologically. SQLite does not support ORDER BY
+// inside json_group_array, so the ordering is enforced here instead. The YM
+// values use a zero-padded YYYY-MM layout, so a lexicographic sort is correct.
+func (ml MonthlyList) SortByYM() {
+	sort.Slice(ml, func(i, j int) bool {
+		return ml[i].YM < ml[j].YM
+	})
+}
 
 func (ml *MonthlyList) Scan(v any) error {
 	switch x := v.(type) {

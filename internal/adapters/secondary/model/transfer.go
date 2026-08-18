@@ -7,7 +7,7 @@ import (
 )
 
 type Transfer struct {
-	ID          int64             `gorm:"column:id;int(64);primaryKey"`
+	ID          int64             `gorm:"column:id;type:bigint;primaryKey;autoIncrement:false"`
 	Date        time.Time         `gorm:"column:date;type:datetime;not null"`
 	FromAccount string            `gorm:"column:from_account;type:varchar(64);not null"`
 	ToAccount   string            `gorm:"column:to_account;type:varchar(64);not null"`

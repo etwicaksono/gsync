@@ -7,11 +7,11 @@ import (
 )
 
 type Transaction struct {
-	ID       int64                `gorm:"column:id;int(64);primaryKey"`
-	Date     time.Time            `gorm:"column:date;type:datetime;not null"`
+	ID       int64                `gorm:"column:id;type:bigint;primaryKey;autoIncrement:false"`
+	Date     time.Time            `gorm:"column:date;type:datetime;not null;index:ix_transactions_date"`
 	Account  string               `gorm:"column:account;type:varchar(64);not null"`
-	Category string               `gorm:"column:category;type:varchar(64);not null"`
-	Amount   float64              `gorm:"column:amount;float(64);not null"`
+	Category string               `gorm:"column:category;type:varchar(64);not null;index:ix_transactions_category"`
+	Amount   float64              `gorm:"column:amount;float(64);not null;index:ix_transactions_amount"`
 	Note     string               `gorm:"column:note;type:text;not null"`
 	Type     string               `gorm:"column:type;type:varchar(16);not null"`
 	Position *TransactionPosition `gorm:"column:position;type:json;serializer:json;default:null"`

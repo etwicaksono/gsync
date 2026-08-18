@@ -5,7 +5,7 @@ import (
 )
 
 type Account struct {
-	ID        int64            `gorm:"column:id;int(64);primaryKey"`
+	ID        int64            `gorm:"column:id;type:bigint;primaryKey;autoIncrement:false"`
 	Code      string           `gorm:"column:code;type:varchar(64);not null"`
 	Name      string           `gorm:"column:name;type:varchar(64);not null"`
 	Active    string           `gorm:"column:active;type:varchar(64);not null"`

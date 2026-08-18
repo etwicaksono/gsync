@@ -55,11 +55,8 @@ type BudgetMateApiConfig struct {
 }
 
 type DbConfig struct {
-	Address               string
-	Protocol              string
-	Name                  string
-	Username              string
-	Password              string
+	// Path is the SQLite database file location, e.g. ./gsync.db
+	Path                  string
 	Option                string
 	MaxOpenConnections    int
 	MaxIdleConnections    int

@@ -3,6 +3,14 @@ vendor
 .env
 .idea
 
+# SQLite database and its write-ahead log sidecars
+*.db
+*.db-shm
+*.db-wal
+
+# Local build output
+temp/
+
 # Reference folder (original scripts before reorganization)
 reference/
 
